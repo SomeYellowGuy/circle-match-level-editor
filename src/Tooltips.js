@@ -10,6 +10,7 @@ const tooltips = {
         "green circle": "Collect green circles!",
         "blue circle": "Collect blue circles!",
         "purple circle": "Collect purple circles!",
+        "black circle": "Collect black circles!",
         "striped circle": "Collect striped circles!",
         "radial circle": "Collect radial circles!",
         "rainbow circle": "Collect rainbow circles!",

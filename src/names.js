@@ -7,6 +7,7 @@ const names = {
     "*3": "Purple Circle",
     "*4": "Red Circle",
     "*5": "Yellow Circle",
+    "*B": "Black Circle",
     "*-": "Horizontal Striped Circle",
     "*|": "Vertical Striped Circle",
     "*O": "Radial Circle",

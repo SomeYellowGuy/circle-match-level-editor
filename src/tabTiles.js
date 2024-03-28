@@ -8,8 +8,8 @@ const tabTiles = {
             tiles: ["--","-O","*S"]
         },
         circles: {
-            name: "Regular Circles",
-            tiles: ["**","*0","*1","*2","*3","*4","*5"]
+            name: "Regular and Black Circles",
+            tiles: ["**","*0","*1","*2","*3","*4","*5","*B"]
         },
         specials: {
             name: "Special Circles",
