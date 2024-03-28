@@ -1,13 +1,13 @@
 {
   "files": {
     "main.css": "/circle-match-level-editor/static/css/main.c3fa46da.css",
-    "main.js": "/circle-match-level-editor/static/js/main.281fc66e.js",
+    "main.js": "/circle-match-level-editor/static/js/main.d8368bdc.js",
     "index.html": "/circle-match-level-editor/index.html",
     "main.c3fa46da.css.map": "/circle-match-level-editor/static/css/main.c3fa46da.css.map",
-    "main.281fc66e.js.map": "/circle-match-level-editor/static/js/main.281fc66e.js.map"
+    "main.d8368bdc.js.map": "/circle-match-level-editor/static/js/main.d8368bdc.js.map"
   },
   "entrypoints": [
     "static/css/main.c3fa46da.css",
-    "static/js/main.281fc66e.js"
+    "static/js/main.d8368bdc.js"
   ]
 }
