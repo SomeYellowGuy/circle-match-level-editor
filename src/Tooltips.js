@@ -3,6 +3,7 @@ const tooltips = {
         "score": "Reach the first target score!",
         "button": "Collect all buttons, or a specific amount of them!",
         "globe": "Collect globes!",
+        "paint": "Spread paint to all tiles, or to a specific extent!",
         // Orders
         "red circle": "Collect red circles!",
         "orange circle": "Collect orange circles!",
@@ -15,7 +16,8 @@ const tooltips = {
         "radial circle": "Collect radial circles!",
         "rainbow circle": "Collect rainbow circles!",
         "metal ball (l)": "Collect metal ball layers!",
-        "watermelon (l)": "Collect watermelon layers!"
+        "watermelon (l)": "Collect watermelon layers!",
+        "donut (l)": "Collect donut layers!"
     }
 }
 

@@ -34,6 +34,10 @@ const tabTiles = {
         watermelons: {
             name: "Watermelons",
             tiles: ["W1", "W2", "W3"]
+        },
+        donuts: {
+            name: "Donuts",
+            tiles: ["d1", "d2", "d3"]
         }
     },
     misc: {
@@ -45,6 +49,10 @@ const tabTiles = {
         buttons: {
             name: "Buttons",
             tiles: ["B1", "B2", "B3"]
+        },
+        paint: {
+            name: "Paint",
+            tiles: ["PT"]
         }
     },
     all: {

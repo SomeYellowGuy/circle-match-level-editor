@@ -32,6 +32,7 @@ function App() {
         star2: 20000,
         star3: 30000,
         increaseColours: false,
+		black: false,
         immediateShowdown: true
     });
 	return (

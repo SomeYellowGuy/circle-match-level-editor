@@ -7,6 +7,7 @@ function Menu(props) {
         timed: false,
         timemove: 30,
         colours: 4,
+        black: false,
         width: 9,
         height: 9,
         hard: "Normal Level",
@@ -165,7 +166,7 @@ function Menu(props) {
         let g = [...goals];
         if (c) g[n][attrib] = !g[n][attrib];
         g[n][attrib] = typeof to !== "number" ? to : Number(to);
-        const optionalAmount = ["button"];
+        const optionalAmount = ["button", "paint"];
         const noAmount = ["score"];
         if (attrib === "type") {
             g[n].optional = optionalAmount.includes(to.toLowerCase());
@@ -204,6 +205,7 @@ function Menu(props) {
         if (t === "score") return "#ff9999";
         if (t === "button") return "#99ddff";
         if (t === "globe") return "#99ffcc";
+        if (t === "paint") return "#f3e830";
         return "#ff77ff";
     }
 
@@ -262,8 +264,8 @@ function Menu(props) {
             Add Goal
         </button>)
         // Render the goals.
-        const gt = `Score,Button,Globe,Red Circle,Orange Circle,Yellow Circle,Green Circle,
-                    Blue Circle,Purple Circle,Striped Circle,Radial Circle,Rainbow Circle,Metal Ball (L),Watermelon (L)`
+        const gt = `Score,Button,Globe,Paint,Red Circle,Orange Circle,Yellow Circle,Green Circle,
+                    Blue Circle,Purple Circle,Black Circle,Striped Circle,Radial Circle,Rainbow Circle,Metal Ball (L),Watermelon (L),Donut (L)`
             .split(",")
         for (let i = 0; i < go.length; i++) {
             let goal = go[i];
@@ -379,6 +381,7 @@ function Menu(props) {
             width: props.m.width === 9 ? undefined : props.m.width,
             height: props.m.height === 9 ? undefined : props.m.height,
             colours: props.m.colours,
+            black: props.m.black,
             hard: Math.max(0,"Normal Level,Hard Level,Super Hard Level,Extremely Hard Level".split(",").indexOf(props.m.hard)),
             immediateShowdown: !props.m.immediateShowdown ? false : undefined,
             increaseColours: props.m.increaseColours ? true : undefined
@@ -386,7 +389,10 @@ function Menu(props) {
         // Goals!
         let goals = props.g
         let dataGoals = goals.map(o=>({
-            type: o.type.toLowerCase() === "metal ball (l)" ? "metal_ball" : (o.type.toLowerCase() === "watermelon (l)" ? "watermelon" : o.type.replace(/ /g, '_').toLowerCase()),
+            type: o.type.toLowerCase() === "metal ball (l)" ? "metal_ball" : (
+                o.type.toLowerCase() === "watermelon (l)" ? "watermelon" : (
+                 o.type.toLowerCase() === "donut (l)" ? "donut" :
+                    o.type.replace(/ /g, '_').toLowerCase())),
             amount: (o.optional ? (o.option ? Number(o.amount) : null) : Number(o.amount) || null)
         }));
         data.goals = dataGoals;
@@ -460,7 +466,8 @@ function Menu(props) {
                 {makeSec("Properties")}
                 {makeField("Timed?", "checkbox", { code: "timed", dc: false })}
                 {makeField(menuState.timed ? "Time (seconds)" : "Moves", "num", { min: 1, max: Infinity, step: 1, value: 30, width: 20, code: "timemove" })}
-                {makeField("Number of Colours", "num", { min: 1, max: 6, step: 1, value: 4, width: 13, code: "colours" })}
+                {makeField("Colo(u)rs", "num", { min: 1, max: 6, step: 1, value: 4, width: 13, code: "colours" })}
+                {makeField("Include Black Circles", "checkbox", { code: "black", dc: false })}
                 {makeSpecial("wh")}
                 {makeField("Difficulty", "dropdown", {
                     options: ["Normal", "Hard Level", "Super Hard Level", "Extremely Hard Level"], styled: ["#999999", "#ff8800", "#ff0033", "#333333"],
@@ -470,7 +477,7 @@ function Menu(props) {
                 {makeField(<><strong style={{ color: "#ff3333" }}>★ </strong>Target</>, "num", { min: 1, max: Infinity, step: 1, value: 10000, width: 50, code: "star1" })}
                 {makeField(<><strong style={{ color: "#22bb22" }}>★ </strong>Target</>, "num", { min: 1, max: Infinity, step: 1, value: 20000, width: 50, code: "star2" })}
                 {makeField(<><strong style={{ color: "#ffbb00" }}>★ </strong>Target</>, "num", { min: 1, max: Infinity, step: 1, value: 30000, width: 50, code: "star3" })}
-                {makeField("Increase colours?", "checkbox", { code: "increaseColours", dc: false })}
+                {makeField("Increase colo(u)rs?", "checkbox", { code: "increaseColours", dc: false })}
                 {makeField("Immediate showdown?", "checkbox", { code: "immediateShowdown", dc: true })}
                 {makeSec("Goals")}
                 {makeGoals(goals)}

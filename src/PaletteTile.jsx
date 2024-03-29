@@ -1,5 +1,6 @@
 import at from "./aliasTiles.js";
 import { useState, useEffect } from "react";
+import tiles from "./tiles.png";
 
 function PaletteTile(props) {
     const [src, setSRC] = useState("");
@@ -27,7 +28,7 @@ function PaletteTile(props) {
         const ctx = canvas.getContext("2d");
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         let image = new Image();
-        image.src = "./tiles.png";
+        image.src = tiles;
         ctx.drawImage(image, d.x, d.y, d.w, d.h, 0, 0, 32, 32);
         setSRC(canvas.toDataURL());
 

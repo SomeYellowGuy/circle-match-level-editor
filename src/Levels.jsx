@@ -47,6 +47,7 @@ function Levels(props) {
             timed: !!d.time,
             timemove: d.time || d.moves,
             colours: d.colours,
+            black: d.black,
             width: d.width || 9,
             height: d.height || 9,
             hard: ["Normal Level","Hard Level","Super Hard Level","Extremely Hard Level"][d.hard || 0],
@@ -64,6 +65,7 @@ function Levels(props) {
             g.type = i.type.replace(/_/g, ' ').split(" ").map(o=>o[0].toUpperCase()+o.slice(1)).join(" ");
             if (i.type === "metal_ball") g.type = "Metal Ball (L)";
             if (i.type === "watermelon") g.type = "Watermelon (L)";
+            if (i.type === "donut") g.type = "Donut (L)";
             if (i.type==="button") g.optional = true;
             g.option = !!(!!g.optional && !!i.amount)
             if (i.type !== "score") g.amount = i.amount || 3
@@ -96,12 +98,12 @@ function Levels(props) {
                       else if (t === "-O") ti.push("-O");
                       else if (t !== "--") ti.push(tileC[i]);
                 }
-                let z = ti.sort(((a,b) => (a[0]==="B" ? -2 : 
+                let z = ti.sort(((a,b) => (a==="PT" ? -3 : (a[0]==="B" ? -2 : 
                 ("D1,D2,b1,b2,b3".split(",").includes(a) ? 2 :
-                ("G-".split(".").includes(a) ? -1 : 0)))));
-                z = z.sort(((a,b) => -1*(b[0]==="B" ? -2 : 
+                ("G-".split(".").includes(a) ? -1 : 0))))));
+                z = z.sort(((a,b) => -1*((b==="PT" ? -3 : (b[0]==="B" ? -2 : 
                 ("D1,D2,b1,b2,b3".split(",").includes(b) ? 2 :
-                ("G-".split(".").includes(b) ? -1 : 0)))));
+                ("G-".split(".").includes(b) ? -1 : 0)))))));
                 xt.push(z)
             }
             editorTiles.push(xt);

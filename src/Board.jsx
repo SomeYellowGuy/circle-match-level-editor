@@ -1,6 +1,7 @@
 import { useRef, useEffect, useState } from "react";
 import at from "./aliasTiles.js";
 import conflictingTiles from "./conflicts.js";
+import tilesSource from "./tiles.png";
 
 function Board(props) {
     const boardRef = useRef(null)
@@ -44,34 +45,36 @@ function Board(props) {
                 // Left button
                 if (props.s === "--") oldTiles[tileY][tileX] = []
                 else if (props.s === "-O") oldTiles[tileY][tileX] = ["-O"]
-                else {
-                if (oldTiles[tileY]?.[tileX]) for (let i = 0; i < oldTiles[tileY][tileX].length; i++) {
-                    let tile = oldTiles[tileY][tileX][i];
-                    for (let g = 0; g < conflictingTiles.length; g++) {
-                        let c = conflictingTiles[g]
-                        if (c.includes(tile) && c.includes(props.s)) oldTiles[tileY][tileX].splice(i, 1);
+                else if (!(oldTiles[tileY]?.[tileX].includes(props.s))) {
+                    if (oldTiles[tileY]?.[tileX]) for (let i = 0; i < oldTiles[tileY][tileX].length; i++) {
+                        let tile = oldTiles[tileY][tileX][i];
+                        for (let g = 0; g < conflictingTiles.length; g++) {
+                            let c = conflictingTiles[g]
+                            if (c.includes(tile) && c.includes(props.s)) oldTiles[tileY][tileX].splice(i, 1);
+                        }
                     }
+                    if (props.s && oldTiles[tileY]?.[tileX].some(o=>o==="-O")) oldTiles[tileY][tileX] = [];
+                    if (oldTiles[tileY]?.[tileX] && !oldTiles[tileY]?.[tileX].some(o=>o===props.s)) oldTiles[tileY][tileX].push(props.s)
                 }
-                if (props.s && oldTiles[tileY]?.[tileX].some(o=>o==="-O")) oldTiles[tileY][tileX] = [];
-                if (oldTiles[tileY]?.[tileX] && !oldTiles[tileY]?.[tileX].some(o=>o===props.s)) oldTiles[tileY][tileX].push(props.s)
-            }
             } else if (e.button === 2) {
                 // Right button
                 oldTiles[tileY][tileX] = [];
             }
             // Sort the tiles.
             let bTiles = [];
+            let pTiles = [];
             let mTiles = [];
             let eTiles = [];
             let tTiles = [];
             if (oldTiles[tileY][tileX].length) for (let i = 0; i < oldTiles[tileY][tileX].length || 0; i++) {
                 let tile = oldTiles[tileY][tileX][i];
                 if (tile[0] === "B") bTiles.push(tile);
+                else if (tile === "PT") pTiles.push(tile);
                 else if (conflictingTiles[1].includes(tile)) eTiles.push(tile);
                 else if ("G-".split(".").includes(tile)) tTiles.push(tile)
                 else mTiles.push(tile);
             }
-            oldTiles[tileY][tileX] = bTiles.concat(tTiles, mTiles, eTiles)
+            oldTiles[tileY][tileX] = bTiles.concat(pTiles, tTiles, mTiles, eTiles)
             setTiles(oldTiles)
             props.st(oldTiles);
         }
@@ -86,7 +89,7 @@ function Board(props) {
 
     function updateTiles(tiles) {
         let image = new Image();
-        image.src = "./tiles.png";
+        image.src = tilesSource;
         setSRC(image);
 
         const MAX_WIDTH = props.m.width;
@@ -142,18 +145,20 @@ function Board(props) {
                 for (let i = 0; i < tiles[y][x].length; i++) {
                     let tile = tiles[y][x][i];
                     let k = tile;
-                    if (tiles[y][x].some(o=>"*0,*1,*2,*3,*4,*5".split(",").includes(o))) {
+                    if (tiles[y][x].some(o=>"*0,*1,*2,*3,*4,*5,*B".split(",").includes(o))) {
                         // +Special?
                         if (tiles[y][x].some(o=>"*-,*|,*O,*+".split(",").includes(o))) {
                             if (tile[0] === "*" && !["*/","*S"].includes(tile)) {
-                                k = tiles[y][x].filter(o=>"*0,*1,*2,*3,*4,*5".split(",").includes(o))[0] +
+                                k = tiles[y][x].filter(o=>"*0,*1,*2,*3,*4,*5,*B".split(",").includes(o))[0] +
                                     tiles[y][x].filter(o=>"*-,*|,*O,*+".split(",").includes(o))[0]
                             }
                         }
                     }
                     const d = getDimensions(k);
                     let s = tileSize;
-                    let ds = (1 - (conflictingTiles[1].includes(tile) || tile === "G-" || tile === "*S" || tile[0] === "B" ? 0.9 : 0.75)) * tileSize;
+                    const is_90_percent = conflictingTiles[1].includes(tile) || tile === "G-" || tile === "*S" || tile === "PT" || tile[0] === "B";
+                    const is_85_percent = tile[0] == "d";
+                    let ds = (1 - (is_90_percent ? 0.9 : (is_85_percent ? 0.85 : 0.75))) * tileSize;
                     if (tile === "G2") ds = 0.1 * tileSize;
                     if ("M1.M2.M3.M4.M5.M6".split(".").includes(tile)) ds = 0.15 * tileSize;
                     if ("W1.W2.W3".split(".").includes(tile)) ds = 0.225 * tileSize;

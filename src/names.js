@@ -13,6 +13,7 @@ const names = {
     "*O": "Radial Circle",
     "*+": "Extra Time Circle",
     "*/": "Rainbow Circle",
+    // Blockers
     "M1": "1-Layered Metal Ball",
     "M2": "2-Layered Metal Ball",
     "M3": "3-Layered Metal Ball",
@@ -22,6 +23,9 @@ const names = {
     "W1": "1-Layered Watermelon",
     "W2": "2-Layered Watermelon",
     "W3": "3-Layered Watermelon",
+    "d1": "1-Layered Donut",
+    "d2": "2-Layered Donut",
+    "d3": "3-Layered Donut",
     // Encasers
     "D1": "1-Layered Drain",
     "D2": "2-Layered Drain",
@@ -37,8 +41,10 @@ const names = {
     "G1": "Globe",
     "G2": "Held Globe",
     "G-": "Globe Exit",
+    "PT": "Paint Tile",
     // Cannons
     "CW": "Watermelon Cannon",
+    "CD": "Donut Cannon",
     "CG": "Globe Cannon",
     "C-": "Horizontal Striped Circle Cannon",
     "C|": "Vertical Striped Circle Cannon",
