@@ -318,7 +318,7 @@ function Menu(props) {
             Add Cannon Data
         </button>)
         // Render the goals.
-        const gt = `Watermelon,Globe,Vertical Striped Circle,Horizontal Striped Circle,Radial Circle`
+        const gt = `Watermelon,Globe,Vertical Striped Circle,Horizontal Striped Circle,Radial Circle,Extra Time Circle`
             .split(",")
         for (let i = 0; i < cannons.length; i++) {
             let c = cannons[i];

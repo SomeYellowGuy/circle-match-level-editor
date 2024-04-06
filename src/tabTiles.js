@@ -5,7 +5,7 @@ const tabTiles = {
         name: "Circles & Tiles",
         tiles: {
             name: "Tiles",
-            tiles: ["--","-O","*S"]
+            tiles: ["--","-O","*S","-C"]
         },
         circles: {
             name: "Regular and Black Circles",
@@ -74,7 +74,7 @@ const tabTiles = {
         },
         circle: {
             name: "Circle Cannons",
-            tiles: ["C-", "C|", "CO"]
+            tiles: ["C-", "C|", "CO", "C+"]
         }
     }
 }

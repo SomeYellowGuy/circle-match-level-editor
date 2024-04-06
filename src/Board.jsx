@@ -42,10 +42,21 @@ function Board(props) {
         }
         if (tileX < props.m.width && tileY < props.m.height && props.s) {
             if (e.button === 0) {
+                const cannonTiles = oldTiles[tileY][tileX].filter(t => t && t[0] === "C");
+                const others = oldTiles[tileY][tileX].filter(t => t && t[0] !== "C");
                 // Left button
-                if (props.s === "--") oldTiles[tileY][tileX] = []
-                else if (props.s === "-O") oldTiles[tileY][tileX] = ["-O"]
-                else if (!(oldTiles[tileY]?.[tileX].includes(props.s))) {
+                var u = false; // Should add cannon tiles?
+                var uOverride = false;
+                if (props.s === "--") {
+                    oldTiles[tileY][tileX] = [];
+                    u = true;
+                }  else if (props.s === "-O") {
+                    oldTiles[tileY][tileX] = ["-O"];
+                    u = true;
+                }  else if (props.s === "-C") {
+                    // Delete all cannon tiles.
+                    uOverride = true;
+                }  else if (!(oldTiles[tileY]?.[tileX].includes(props.s))) {
                     if (oldTiles[tileY]?.[tileX]) for (let i = 0; i < oldTiles[tileY][tileX].length; i++) {
                         let tile = oldTiles[tileY][tileX][i];
                         for (let g = 0; g < conflictingTiles.length; g++) {
@@ -53,9 +64,27 @@ function Board(props) {
                             if (c.includes(tile) && c.includes(props.s)) oldTiles[tileY][tileX].splice(i, 1);
                         }
                     }
-                    if (props.s && oldTiles[tileY]?.[tileX].some(o=>o==="-O")) oldTiles[tileY][tileX] = [];
-                    if (oldTiles[tileY]?.[tileX] && !oldTiles[tileY]?.[tileX].some(o=>o===props.s)) oldTiles[tileY][tileX].push(props.s)
+                    if (props.s && oldTiles[tileY]?.[tileX].some(o=>o==="-O")) {
+                        oldTiles[tileY][tileX] = [];
+                        u = true;
+                    }
+                    if (oldTiles[tileY]?.[tileX] && !oldTiles[tileY]?.[tileX].some(o=>o===props.s)){
+                        oldTiles[tileY][tileX].push(props.s)
+                    }
                 }
+                if (!oldTiles[tileY]?.[tileX].some(o=>o!=="-O")) {
+                    oldTiles[tileY][tileX] = [];
+                }
+
+                if (uOverride && cannonTiles.length > 0) {
+                    for (let i = 0; i <= oldTiles[tileY][tileX].length; i++) {
+                        const tile = oldTiles[tileY][tileX][i];
+                        if (tile[0] === "C") {
+                            console.log(tile)
+                            oldTiles[tileY][tileX].splice(i);
+                        }
+                    } 
+                } else if (u && others.length > 0) oldTiles[tileY][tileX] = oldTiles[tileY][tileX].concat(cannonTiles);
             } else if (e.button === 2) {
                 // Right button
                 oldTiles[tileY][tileX] = [];

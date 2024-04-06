@@ -48,7 +48,8 @@ const names = {
     "CG": "Globe Cannon",
     "C-": "Horizontal Striped Circle Cannon",
     "C|": "Vertical Striped Circle Cannon",
-    "CO": "Radial Circle Cannon"
+    "CO": "Radial Circle Cannon",
+    "C+": "Extra Time Circle Cannon"
 }
 
 export default names;
