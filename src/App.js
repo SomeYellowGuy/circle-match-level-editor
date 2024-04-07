@@ -9,6 +9,7 @@ import { useState } from "react";
 function App() {
 	const [level, setLevel] = useState(null);
 	const [selected, setSelected] = useState(null);
+
 	let t = [];
     for (let i = 0; i < 9; i++) {
         let l = [];
@@ -35,6 +36,7 @@ function App() {
 		black: false,
         immediateShowdown: true
     });
+
 	return (
 		<>
 			<Palette ss={setSelected}/>

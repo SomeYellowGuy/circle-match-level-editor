@@ -12,12 +12,29 @@ function Board(props) {
         for (let j = 0; j < 12; j++) l.push(["--"]);
         t.push(l)
     }
-    const [tiles, setTiles] = useState(t)
-    const [src, setSRC] = useState(null)
+    const [tiles, setTiles] = useState(t);
+    const [src, setSRC] = useState(null);
+
+    const [screenSize, setScreenSize] = useState({
+        width: window.innerWidth,
+        height: window.innerHeight,
+    });
 
     useEffect(() => {
-        if (!canvas) return;
-    });
+        const handleResize = () => {
+            setScreenSize({
+                width: window.innerWidth,
+                height: window.innerHeight,
+            });
+        };
+
+        window.addEventListener('resize', handleResize);
+
+        // Clean up the event listener when the component unmounts.
+        return () => {
+            window.removeEventListener('resize', handleResize);
+        };
+    }, []);
 
     function handleClick(e) {
         const MAX_WIDTH = props.m.width;
@@ -50,13 +67,13 @@ function Board(props) {
                 if (props.s === "--") {
                     oldTiles[tileY][tileX] = [];
                     u = true;
-                }  else if (props.s === "-O") {
+                } else if (props.s === "-O") {
                     oldTiles[tileY][tileX] = ["-O"];
                     u = true;
-                }  else if (props.s === "-C") {
+                } else if (props.s === "-C") {
                     // Delete all cannon tiles.
                     uOverride = true;
-                }  else if (!(oldTiles[tileY]?.[tileX].includes(props.s))) {
+                } else if (!(oldTiles[tileY]?.[tileX].includes(props.s))) {
                     if (oldTiles[tileY]?.[tileX]) for (let i = 0; i < oldTiles[tileY][tileX].length; i++) {
                         let tile = oldTiles[tileY][tileX][i];
                         for (let g = 0; g < conflictingTiles.length; g++) {
@@ -64,26 +81,22 @@ function Board(props) {
                             if (c.includes(tile) && c.includes(props.s)) oldTiles[tileY][tileX].splice(i, 1);
                         }
                     }
-                    if (props.s && oldTiles[tileY]?.[tileX].some(o=>o==="-O")) {
+                    if (props.s && oldTiles[tileY]?.[tileX].some(o => o === "-O")) {
                         oldTiles[tileY][tileX] = [];
                         u = true;
                     }
-                    if (oldTiles[tileY]?.[tileX] && !oldTiles[tileY]?.[tileX].some(o=>o===props.s)){
+                    if (oldTiles[tileY]?.[tileX] && !oldTiles[tileY]?.[tileX].some(o => o === props.s)) {
                         oldTiles[tileY][tileX].push(props.s)
                     }
-                }
-                if (!oldTiles[tileY]?.[tileX].some(o=>o!=="-O")) {
-                    oldTiles[tileY][tileX] = [];
                 }
 
                 if (uOverride && cannonTiles.length > 0) {
                     for (let i = 0; i <= oldTiles[tileY][tileX].length; i++) {
                         const tile = oldTiles[tileY][tileX][i];
                         if (tile[0] === "C") {
-                            console.log(tile)
                             oldTiles[tileY][tileX].splice(i);
                         }
-                    } 
+                    }
                 } else if (u && others.length > 0) oldTiles[tileY][tileX] = oldTiles[tileY][tileX].concat(cannonTiles);
             } else if (e.button === 2) {
                 // Right button
@@ -111,10 +124,10 @@ function Board(props) {
         updateTiles(oldTiles)
     }
 
-    useEffect(()=>{
+    useEffect(() => {
         setTiles(props.t)
         updateTiles(props.t);
-    }, [props.t])
+    }, [props.t, screenSize])
 
     function updateTiles(tiles) {
         let image = new Image();
@@ -133,7 +146,7 @@ function Board(props) {
         canvas.height = h;
         if (!props.l) {
             ctx.fillStyle = "#eeeeee";
-            ctx.fillRect(0,0,w,h);
+            ctx.fillRect(0, 0, w, h);
             return;
         }
         ctx.fillStyle = "#5599ff";
@@ -174,55 +187,71 @@ function Board(props) {
                 for (let i = 0; i < tiles[y][x].length; i++) {
                     let tile = tiles[y][x][i];
                     let k = tile;
-                    if (tiles[y][x].some(o=>"*0,*1,*2,*3,*4,*5,*B".split(",").includes(o))) {
+                    if (tiles[y][x].some(o => "*0,*1,*2,*3,*4,*5,*B".split(",").includes(o))) {
                         // +Special?
-                        if (tiles[y][x].some(o=>"*-,*|,*O,*+".split(",").includes(o))) {
-                            if (tile[0] === "*" && !["*/","*S"].includes(tile)) {
-                                k = tiles[y][x].filter(o=>"*0,*1,*2,*3,*4,*5,*B".split(",").includes(o))[0] +
-                                    tiles[y][x].filter(o=>"*-,*|,*O,*+".split(",").includes(o))[0]
+                        if (tiles[y][x].some(o => "*-,*|,*O,*+".split(",").includes(o))) {
+                            if (tile[0] === "*" && !["*/", "*S"].includes(tile)) {
+                                k = tiles[y][x].filter(o => "*0,*1,*2,*3,*4,*5,*B".split(",").includes(o))[0] +
+                                    tiles[y][x].filter(o => "*-,*|,*O,*+".split(",").includes(o))[0]
                             }
                         }
                     }
                     const d = getDimensions(k);
                     let s = tileSize;
                     const is_90_percent = conflictingTiles[1].includes(tile) || tile === "G-" || tile === "*S" || tile === "PT" || tile[0] === "B";
-                    const is_85_percent = tile[0] == "d";
+                    const is_85_percent = tile[0] === "d";
                     let ds = (1 - (is_90_percent ? 0.9 : (is_85_percent ? 0.85 : 0.75))) * tileSize;
                     if (tile === "G2") ds = 0.1 * tileSize;
                     if ("M1.M2.M3.M4.M5.M6".split(".").includes(tile)) ds = 0.15 * tileSize;
                     if ("W1.W2.W3".split(".").includes(tile)) ds = 0.225 * tileSize;
                     if (tile !== "--" && tile !== "-O" && tile[0] !== "C") ctx.drawImage(src, d.x, d.y, d.w, d.h, x * tileSize + ds / 2, y * tileSize + ds / 2, s - ds, s - ds)
                     let t;
-                    if (props.teles.some(o=>o.from[0]===x+1&&o.from[1]===y+1)) {
+                    const validEntryTeleporters = props.teles.filter(o => o.from[0] === x + 1 && o.from[1] === y + 1);
+                    if (validEntryTeleporters.length > 0) {
+                        let first = validEntryTeleporters[0];
+                        let num = props.teles.map((t, ind) => t.from[0]===first.from[0]&&t.from[1]===first.from[1]&&t.to[0]===first.to[0]&&t.to[1]===first.to[1] ? ind : null);
                         // Teleporter Entry
                         t = getDimensions("?1");
                         ds = 0.1 * tileSize;
-                        ctx.drawImage(src, t.x, t.y, t.w, t.h, x * tileSize + ds / 2, y * tileSize + ds / 2, s - ds, s - ds)
+                        ctx.drawImage(src, t.x, t.y, t.w, t.h, x * tileSize + ds / 2, y * tileSize + ds / 2, s - ds, s - ds);
+
+                        ctx.fillStyle = "rgba(0,0,0,0.7)";
+                        ctx.font = "15px Segoe UI";
+                        ctx.textAlign = "center";
+                        ctx.fillText(num.filter(n => n != null)[0] + 1 , (x + 0.45) * tileSize + ds / 2, (y + 0.9) * tileSize + ds / 2);
                     }
-                    if (props.teles.some(o=>o.to[0]===x+1&&o.to[1]===y+1)) {
+                    const validExitTeleporters = props.teles.filter(o => o.to[0] === x + 1 && o.to[1] === y + 1);
+                    if (validExitTeleporters.length > 0) {
+                        let first = validExitTeleporters[0];
+                        let num = props.teles.map((t, ind) => t.from[0]===first.from[0]&&t.from[1]===first.from[1]&&t.to[0]===first.to[0]&&t.to[1]===first.to[1] ? ind : null);
                         // Teleporter Exit
                         t = getDimensions("?2");
                         ds = 0.1 * tileSize;
                         ctx.drawImage(src, t.x, t.y, t.w, t.h, x * tileSize + ds / 2, y * tileSize + ds / 2, s - ds, s - ds)
+
+                        ctx.fillStyle = "rgba(0,0,0,0.7)";
+                        ctx.font = "15px Segoe UI";
+                        ctx.textAlign = "center";
+                        ctx.fillText(num.filter(n => n != null)[0] + 1, (x + 0.45) * tileSize + ds / 2, (y + 0.1) * tileSize + ds / 2);
                     }
                     let c = 0;
                     ctx.fillStyle = "rgba(0,0,0,0.4)";
-                    if (tiles[y][x].some(o=>o[0]==="C")) ctx.fillRect(x*tileSize,y*tileSize,tileSize,0.3*tileSize);
-                    for (let cannon of tiles[y][x].filter(o=>o[0]==="C").reverse()) {
-                        const d = getDimensions("??"+cannon)
-                        const ds = 0.75*tileSize;
-                        const l = tiles[y][x].filter(o=>o[0]==="C").length + 1
-                        ctx.drawImage(src, d.x, d.y, d.w, d.h, (x+0.4) * tileSize + ds / 2 - (c*tileSize/l) - 5, (y - 0.35) * tileSize + ds / 2, s - ds, s - ds);
+                    if (tiles[y][x].some(o => o[0] === "C")) ctx.fillRect(x * tileSize, y * tileSize, tileSize, 0.3 * tileSize);
+                    for (let cannon of tiles[y][x].filter(o => o[0] === "C").reverse()) {
+                        const d = getDimensions("??" + cannon)
+                        const ds = 0.75 * tileSize;
+                        const l = tiles[y][x].filter(o => o[0] === "C").length + 1
+                        ctx.drawImage(src, d.x, d.y, d.w, d.h, (x + 0.4) * tileSize + ds / 2 - (c * tileSize / l) - 5, (y - 0.35) * tileSize + ds / 2, s - ds, s - ds);
                         c++;
                     }
                     ctx.fillStyle = "rgba(255,255,255,0.15)";
-                    if (props.ts && props.ts[0] === x && props.ts[1] === y) ctx.fillRect(x*tileSize,y*tileSize,tileSize,tileSize);
+                    if (props.ts && props.ts[0] === x && props.ts[1] === y) ctx.fillRect(x * tileSize, y * tileSize, tileSize, tileSize);
                 }
             }
         }
     }
 
-    useEffect(()=>{
+    useEffect(() => {
         updateTiles(props.t);
     }, [props.m, props.l, props.t, props.ts, props.teles]);
 
@@ -231,7 +260,7 @@ function Board(props) {
             className="Board"
             onContextMenu={e => e.preventDefault()}
             onMouseDown={handleClick}
-            onResize={()=>updateTiles(tiles)}
+            onResize={() => updateTiles(tiles)}
             ref={boardRef}
         />
     );

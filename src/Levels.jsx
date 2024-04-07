@@ -110,7 +110,17 @@ function Levels(props) {
         }
         props.sg(go);
         props.st(editorTiles);
-        props.sc(d.cannons || [])
+        // Load cannons.
+        let ca = [];
+        for (let i of d.cannons) {
+            if (!i.type) return false;
+            let c = {};
+            c.type = i.type.replace(/_/g, ' ').split(" ").map(o=>o[0].toUpperCase()+o.slice(1)).join(" ");
+            c.max = i.max;
+            if (i.layers) c.layers = i.layers;
+            ca.push(c)
+        }
+        props.sc(ca || [])
         let teleporters = [];
         for (let i = 0; i < tc.length; i++) {
             if (tc[i][0] && tc[i][1]) teleporters.push({from: [...tc[i][0]].map(o=>o+1), to: [...tc[i][1]].map(o=>o+1)})
