@@ -6,7 +6,6 @@ function Levels(props) {
     const [levelNums, setLN] = useState([])
 
     useEffect(()=>{
-        console.log(props.lns)
         setLN(props.lns)
     }, [props.lns])
 
@@ -15,10 +14,11 @@ function Levels(props) {
         setHandle(h);
         let numbers = [];
         // Get levels that exist.
-        for await (const [n] of h.entries()) {
+        for await (const [n, data] of h.entries()) {
             if (n.slice(-5) !== ".json") continue;
             if (isNaN(Number(n.slice(0, -5)))) continue;
-            if (Number(n.slice(0, -5)) > 0) numbers.push(Number(n.slice(0, -5)));
+            const lD = JSON.parse(await (await data.getFile()).text());
+            if (Number(n.slice(0, -5)) > 0) numbers.push([Number(n.slice(0, -5)), lD.hard || 0]);
         }
         setLN(numbers.sort((a,b)=>a-b));
         props.slns(numbers.sort((a,b)=>a-b))
@@ -86,7 +86,6 @@ function Levels(props) {
                         let tid = Number((t+tileC[i+1]).slice(1));
                         if (tid % 2 === 0) {
                             // Exit
-                            console.log(tid)
                             tc[tid/2-1][1] = [x, y];
                         } else {
                             // Enter
@@ -129,11 +128,11 @@ function Levels(props) {
     }
 
     function makeLevelButtons() {
-        let comps = levelNums.map(o => <button 
-            className={props.l === o ? "LNButton LNSel" : "LNButton"}
-            key={o}
-            onClick={() => applySelectedLevel(o)}
-        >{o}</button>)
+        let comps = levelNums.sort((a, b) => a[0] - b[0]).map(o => <button 
+            className={"LNButton" + (props.l === o[0] ? " LNSel" : (" h" + o[1] + "LNColor"))}
+            key={o[0]}
+            onClick={() => applySelectedLevel(o[0])}
+        >{o[0]}</button>)
         return comps;
     }
 
@@ -153,7 +152,7 @@ function Levels(props) {
                 props.st(t);
                 props.steles([]);
                 props.sg([]);
-                props.sl(Math.max(...levelNums)+1);
+                props.sl(Math.max(...levelNums.map(o => o[0]))+1);
             }}>
                 Create New Level
             </button>

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import tooltips from "./Tooltips";
 import conflictingTiles from "./conflicts"
+import levelThings from "./levelThings";
 
 function Menu(props) {
     const [menuState, setMS] = useState({
@@ -182,7 +183,6 @@ function Menu(props) {
     function changeTeleAttribute(n, attrib, to, c) {
         let g = [...teleporters];
         let prop = attrib.slice(0,-1);
-        console.log(g, prop)
         let t = g[n][prop];
         t[Number(attrib[attrib.length-1])] = Number(to);
         g[n][prop] = t;
@@ -264,9 +264,7 @@ function Menu(props) {
             Add Goal
         </button>)
         // Render the goals.
-        const gt = `Score,Button,Globe,Paint,Red Circle,Orange Circle,Yellow Circle,Green Circle,
-                    Blue Circle,Purple Circle,Black Circle,Striped Circle,Radial Circle,Rainbow Circle,Metal Ball (L),Watermelon (L),Donut (L)`
-            .split(",")
+        const gt = levelThings.goals;
         for (let i = 0; i < go.length; i++) {
             let goal = go[i];
             let goalTypes = [];
@@ -318,8 +316,7 @@ function Menu(props) {
             Add Cannon Data
         </button>)
         // Render the goals.
-        const gt = `Watermelon,Globe,Vertical Striped Circle,Horizontal Striped Circle,Radial Circle,Extra Time Circle`
-            .split(",")
+        const gt = levelThings.cannonTypes;
         for (let i = 0; i < cannons.length; i++) {
             let c = cannons[i];
             let cItems = [];
@@ -444,11 +441,9 @@ function Menu(props) {
             await file.write(JSON.stringify(data));
             await file.close();
             // Add to levelNums.
-            console.log(data)
             if (!props.lns.includes(props.l)) {
                 let m = props.lns;
                 m.push(props.l);
-                console.log(m)
                 props.slns(m);
             }
         })

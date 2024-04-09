@@ -198,12 +198,14 @@ function Board(props) {
                     }
                     const d = getDimensions(k);
                     let s = tileSize;
-                    const is_90_percent = conflictingTiles[1].includes(tile) || tile === "G-" || tile === "*S" || tile === "PT" || tile[0] === "B";
+                    const other_90_percents = ["G-", "*S", "PT", "B1", "B2", "B3", "J1", "J2", "J3", "J4"];
+                    const is_90_percent = conflictingTiles[1].includes(tile) || other_90_percents.includes(tile);
                     const is_85_percent = tile[0] === "d";
                     let ds = (1 - (is_90_percent ? 0.9 : (is_85_percent ? 0.85 : 0.75))) * tileSize;
                     if (tile === "G2") ds = 0.1 * tileSize;
                     if ("M1.M2.M3.M4.M5.M6".split(".").includes(tile)) ds = 0.15 * tileSize;
                     if ("W1.W2.W3".split(".").includes(tile)) ds = 0.225 * tileSize;
+
                     if (tile !== "--" && tile !== "-O" && tile[0] !== "C") ctx.drawImage(src, d.x, d.y, d.w, d.h, x * tileSize + ds / 2, y * tileSize + ds / 2, s - ds, s - ds)
                     let t;
                     const validEntryTeleporters = props.teles.filter(o => o.from[0] === x + 1 && o.from[1] === y + 1);

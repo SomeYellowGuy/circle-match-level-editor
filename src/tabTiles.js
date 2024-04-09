@@ -38,6 +38,10 @@ const tabTiles = {
         donuts: {
             name: "Donuts",
             tiles: ["d1", "d2", "d3"]
+        },
+        jawbreakers: {
+            name: "Jawbreakers",
+            tiles: ["J1", "J2", "J3", "J4"]
         }
     },
     misc: {

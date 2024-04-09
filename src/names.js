@@ -20,9 +20,16 @@ const names = {
     "M4": "4-Layered Metal Ball",
     "M5": "5-Layered Metal Ball",
     "M6": "6-Layered Metal Ball",
+
     "W1": "1-Layered Watermelon",
     "W2": "2-Layered Watermelon",
     "W3": "3-Layered Watermelon",
+
+    "J1": "1-layered Jawbreaker (Gum)",
+    "J2": "2-layered Jawbreaker",
+    "J3": "3-layered Jawbreaker",
+    "J4": "4-layered Jawbreaker",
+
     "d1": "1-Layered Donut",
     "d2": "2-Layered Donut",
     "d3": "3-Layered Donut",
