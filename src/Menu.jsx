@@ -441,9 +441,9 @@ function Menu(props) {
             await file.write(JSON.stringify(data));
             await file.close();
             // Add to levelNums.
-            if (!props.lns.includes(props.l)) {
+            if (!props.lns.map(o => o[0]).includes(props.l)) {
                 let m = props.lns;
-                m.push(props.l);
+                m.push([props.l, null]);
                 props.slns(m);
             }
         })

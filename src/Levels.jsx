@@ -128,11 +128,13 @@ function Levels(props) {
     }
 
     function makeLevelButtons() {
-        let comps = levelNums.sort((a, b) => a[0] - b[0]).map(o => <button 
-            className={"LNButton" + (props.l === o[0] ? " LNSel" : (" h" + o[1] + "LNColor"))}
-            key={o[0]}
-            onClick={() => applySelectedLevel(o[0])}
-        >{o[0]}</button>)
+        let comps = levelNums.sort((a, b) => a[0] - b[0]).map(o => {
+            const n = o[1] || 0;
+            return <button 
+                className={"LNButton" + (props.l === o[0] ? " LNSel" : (" h" + n + "LNColor"))}
+                key={o[0]}
+                onClick={() => applySelectedLevel(o[0])}
+        >{o[0]}</button>});
         return comps;
     }
 
