@@ -21,6 +21,8 @@ function Menu(props) {
 
     let [R, setR] = useState(0)
 
+    let [currentTab, setCurrentTab] = useState("properties");
+
     const [goals, setGoals] = useState([]);
     const [teleporters, setTeles] = useState([]);
     const [cannons, setCannons] = useState([]);
@@ -133,7 +135,8 @@ function Menu(props) {
         c.push({
             type: "watermelon",
             layer: 1,
-            max: 5
+            max: 5,
+            interval: 1
         });
         setCannons(c);
         props.sc(c);
@@ -311,11 +314,11 @@ function Menu(props) {
 
     function makeCannons() {
         let items = [];
-        // Make an Add Goal button.
+        // Make an Add Cannon Data button.
         items.push(<button id="MenuGoalAdd" onClick={addCannonData} key={0}>
             Add Cannon Data
         </button>)
-        // Render the goals.
+        // Render the cannon data structures.
         const gt = levelThings.cannonTypes;
         for (let i = 0; i < cannons.length; i++) {
             let c = cannons[i];
@@ -347,7 +350,14 @@ function Menu(props) {
                 <label htmlFor="quantity" className={"MenuAreaLabel"}>Layer<input type="number"
                     className={"MenuAreaField"} onChange={(e) => changeCAttribute(i, "layer", e.target.value)}
                     min={1} max={10} step={1} value={c.layer} style={{
-                        width: "20%"
+                        width: "30%"
+                    }} /></label>
+            </div>);
+            cItems.push(<div>
+                <label htmlFor="input" className={"MenuAreaLabel"}>Interval<input type="number"
+                    className={"MenuAreaField"} onChange={(e) => changeCAttribute(i, "interval", e.target.value)}
+                    min={1} max={Infinity} step={1} value={c.interval} style={{
+                        width: "30%"
                     }} /></label>
             </div>);
             items.push(
@@ -365,9 +375,9 @@ function Menu(props) {
         setGoals(props.g)
         setR(r => r + 1);
         setTeles(props.teles);
-        setCannons(props.c)
+        setCannons(props.c);
         return () => { };
-    }, [props.l, menuState, props.m, props.g, props.teles, props.c]);
+    }, [props.l, menuState, props.currentTab, props.m, props.g, props.teles, props.c]);
 
     function saveLevel() {
         // Make basic metadata.
@@ -422,6 +432,7 @@ function Menu(props) {
         data.cannons = cannons.map(o=>({
             type: o.type.toLowerCase().split(" ").join("_"),
             max: o.max,
+            interval: o.interval,
             layer: o.layer
         }));
         // Allow thr user to save!
@@ -448,6 +459,49 @@ function Menu(props) {
             }
         })
     }
+    
+    function makeTabs() {
+        const tabs = "Properties,Goals,Cannons,Teleporters";
+        return tabs.split(",").map((o, i) => {
+            const k = o.toLowerCase();
+            const selected = (!currentTab && k === "properties") || currentTab === k;
+            return <button className={"MenuTab" + (selected ? " MenuSelectedTab" : "")} key={i} onClick={() => setCurrentTab(o.toLowerCase())}>
+                {o}
+            </button>
+        })
+    }
+
+    function getFilteredTab() {
+        switch (currentTab) {
+            case "goals":
+                return [makeSec("Goals"), makeGoals(goals)];
+            case "cannons":
+                return [makeSec("Cannons"), makeCannons()];
+            case "teleporters":
+                return [makeSec("Teleporters"), makeTeleporters()];
+            // Default: Properties.
+            default:
+                return [
+                    makeSec("Properties"),
+                    makeField("Timed?", "checkbox", { code: "timed", dc: false }),
+                    makeField(menuState.timed ? "Time (seconds)" : "Moves", "num", { min: 1, max: Infinity, step: 1, value: 30, width: 20, code: "timemove" }),
+                    makeField("Colo(u)rs", "num", { min: 1, max: 6, step: 1, value: 4, width: 13, code: "colours" }),
+                    makeField("Include Black Circles", "checkbox", { code: "black", dc: false }),
+                    makeSpecial("wh"),
+                    makeField("Difficulty", "dropdown", {
+                        options: ["Normal", "Hard Level", "Super Hard Level", "Extremely Hard Level"], styled: ["#999999", "#ff8800", "#ff0033", "#333333"],
+                        outlineStyled: ["black", "black", "white", "white"], width: 56, code: "hard"
+                    }),
+
+                    makeField(<><strong style={{ color: "#ff3333" }}>★ </strong>Target</>, "num", { min: 1, max: Infinity, step: 1, value: 10000, width: 50, code: "star1" }),
+                    makeField(<><strong style={{ color: "#22bb22" }}>★ </strong>Target</>, "num", { min: 1, max: Infinity, step: 1, value: 20000, width: 50, code: "star2" }),
+                    makeField(<><strong style={{ color: "#ffbb00" }}>★ </strong>Target</>, "num", { min: 1, max: Infinity, step: 1, value: 30000, width: 50, code: "star3" }),
+                    makeField("Increase colo(u)rs?", "checkbox", { code: "increaseColours", dc: false }),
+                    makeField("Immediate showdown?", "checkbox", { code: "immediateShowdown", dc: true })
+                ]
+            
+        }
+    }
 
     return (
         <div className="Menu">
@@ -456,30 +510,10 @@ function Menu(props) {
             {(!props.l) ? "Select a level!" : <>
                 <div>{"Level " + props.l}</div>
                 <button id="MenuGoalAdd" onClick={saveLevel} key={0}>
-            Save Level
-        </button>
-                {makeSec("Properties")}
-                {makeField("Timed?", "checkbox", { code: "timed", dc: false })}
-                {makeField(menuState.timed ? "Time (seconds)" : "Moves", "num", { min: 1, max: Infinity, step: 1, value: 30, width: 20, code: "timemove" })}
-                {makeField("Colo(u)rs", "num", { min: 1, max: 6, step: 1, value: 4, width: 13, code: "colours" })}
-                {makeField("Include Black Circles", "checkbox", { code: "black", dc: false })}
-                {makeSpecial("wh")}
-                {makeField("Difficulty", "dropdown", {
-                    options: ["Normal", "Hard Level", "Super Hard Level", "Extremely Hard Level"], styled: ["#999999", "#ff8800", "#ff0033", "#333333"],
-                    outlineStyled: ["black", "black", "white", "white"], width: 56, code: "hard"
-                })}
-
-                {makeField(<><strong style={{ color: "#ff3333" }}>★ </strong>Target</>, "num", { min: 1, max: Infinity, step: 1, value: 10000, width: 50, code: "star1" })}
-                {makeField(<><strong style={{ color: "#22bb22" }}>★ </strong>Target</>, "num", { min: 1, max: Infinity, step: 1, value: 20000, width: 50, code: "star2" })}
-                {makeField(<><strong style={{ color: "#ffbb00" }}>★ </strong>Target</>, "num", { min: 1, max: Infinity, step: 1, value: 30000, width: 50, code: "star3" })}
-                {makeField("Increase colo(u)rs?", "checkbox", { code: "increaseColours", dc: false })}
-                {makeField("Immediate showdown?", "checkbox", { code: "immediateShowdown", dc: true })}
-                {makeSec("Goals")}
-                {makeGoals(goals)}
-                {makeSec("Cannons")}
-                {makeCannons()}
-                {makeSec("Teleporters")}
-                {makeTeleporters()}
+                    Save Level
+                </button>
+                {makeTabs()}
+                {getFilteredTab()}
             </>
             }
         </div>

@@ -321,6 +321,25 @@ option:checked {
 	font-size: 18px;
 }
 
+.MenuTab {
+	height: 25px;
+	width: 50%;
+	margin: 0;
+	font-size: 13px;
+	font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+	border: 0;
+	float: left;
+	transition-duration: 0.5s;
+	background-color: #2d4a00;
+	color: white;
+	border-bottom: #c3ff8a solid 1px;
+	border-right: #c3ff8a solid 1px;
+}
+
+.MenuSelectedTab {
+	background-color: #497a00;
+}
+
 /* Board */
 
 .Board {

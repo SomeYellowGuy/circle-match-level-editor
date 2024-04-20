@@ -145,6 +145,8 @@ function Levels(props) {
                 Select Level Folder
             </button>
             <button className="LevelsButton" onClick={()=>{
+                const newLevel = Math.max(...levelNums.map(o => o[0]))+1;
+                if (newLevel === -Infinity) return;
                 let t = [];
                 for (let i = 0; i < 9; i++) {
                     let l = [];
@@ -154,7 +156,7 @@ function Levels(props) {
                 props.st(t);
                 props.steles([]);
                 props.sg([]);
-                props.sl(Math.max(...levelNums.map(o => o[0]))+1);
+                props.sl(newLevel);
             }}>
                 Create New Level
             </button>
