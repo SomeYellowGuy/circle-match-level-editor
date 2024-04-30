@@ -22,6 +22,13 @@ function App() {
 	const [c, setC] = useState([]);
 	const [ts, setTS] = useState(null);
 	const [lns, setLNS] = useState([]);
+	const [dir, setDir] = useState(null);
+	const [sct, setsct] = useState(0);
+	const [menuCurrentTab, setmct] = useState("properties");
+	const [cameraData, setCameraData] = useState({
+		enabled: false,
+		cameras: []
+	})
 	const [menuS, setMs] = useState({
         timed: false,
         timemove: 30,
@@ -39,14 +46,46 @@ function App() {
 
 	return (
 		<>
-			<Palette ss={setSelected}/>
+			<Palette ss={setSelected} cd={cameraData}/>
 			<>
-			<Menu  l={level} sm={setMs} m={menuS} g={g} sg={setG} teles={teles} steles={setTeles} t={tiles} lns={lns} slns={setLNS} sc={setC} c={c}/> 
-			<Board s={selected} m={menuS} l={level} st={setTiles} t={tiles} teles={teles} ts={ts} sts={setTS}/>
+			<Menu  
+				setmct={setmct} sct={sct} setsct={setsct}
+				l={level} sm={setMs}
+				dir={dir} m={menuS}
+				g={g} sg={setG}
+				teles={teles} steles={setTeles}
+				t={tiles} st={setTiles}
+				lns={lns} slns={setLNS} sc={setC} c={c}
+				cd={cameraData} setcd={setCameraData}
+			/>
+			<div className={"BoardDiv"} style={{
+				overflow: level > 0 ? "scroll" : "auto"
+			}}>
+			<Board 
+				mct={menuCurrentTab}
+				sct={sct} setsct={setsct}
+				s={selected} m={menuS} l={level}
+				st={setTiles} t={tiles} 
+				teles={teles} steles={setTeles} 
+				ts={ts} sts={setTS}
+				cd={cameraData} setcd={setCameraData}
+				/></div>
 			</>
 			<>
-				<Levels l={level} sl={setLevel} st={setTiles} sm={setMs} sg={setG} steles={setTeles} slns={setLNS} lns={lns} sc={setC}/>
-				<Tiles ts={ts} t={tiles} st={setTiles} sts={setTS} ss={setSelected} s={selected}/> 
+				<Levels
+					l={level} sl={setLevel}
+					dir={dir} st={setTiles} sd={setDir}
+					sm={setMs} sg={setG}
+					steles={setTeles}
+					slns={setLNS} lns={lns}
+					sc={setC}
+					cd={cameraData} setcd={setCameraData}
+				/>
+				<Tiles
+					ts={ts} t={tiles} st={setTiles}
+					sts={setTS} ss={setSelected} 
+					s={selected}
+				/> 
 			</>
 		</>
 	)

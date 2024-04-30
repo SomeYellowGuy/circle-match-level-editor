@@ -9,10 +9,16 @@ const levelThings = {
     Metal Ball (L),Watermelon (L),Donut (L),Jawbreaker`.split(","),
 
     /**
+     * Goals that are NOT requirements and cannot be used as a requirement.
+     */
+    notReqs:
+    `Score,Rainbow Circle,Striped Circle,Horizontal Circle`.split(","),
+
+    /**
      * All possible types of a cannon of a level.
      */
     cannonTypes:
-    `Watermelon,Globe,Vertical Striped Circle,Horizontal Striped Circle,Radial Circle,Extra Time Circle`.split(",")
+    `Watermelon,Globe,Striped Circle,Radial Circle,Extra Time Circle`.split(",")
 }
 
 export default levelThings;

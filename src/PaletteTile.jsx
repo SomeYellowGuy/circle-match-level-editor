@@ -1,6 +1,7 @@
 import at from "./aliasTiles.js";
 import { useState, useEffect } from "react";
 import tiles from "./tiles.png";
+import names from "./names.js";
 
 function PaletteTile(props) {
     const [src, setSRC] = useState("");
@@ -13,6 +14,19 @@ function PaletteTile(props) {
         let x = index % 8;
         let y = Math.floor(index / 8);
         return { x: x * 64, y: y * 64, w: 64, h: 64, i: index }
+    }
+
+    function isDisabled() {
+        return props.code === "cp" && !props.cd.enabled;
+    }
+
+    function tooltip() {
+        if (isDisabled()) {
+            switch (props.code) {
+                case "cp": return "Need to enable cameras to use this!"
+            }
+        }
+        return names[props.code];
     }
 
     const d = getDimensions(props.code);
@@ -34,10 +48,11 @@ function PaletteTile(props) {
 
     }, [d.x, d.y, d.w, d.h, src])
 
-    return <button key={d.i} className="PaletteButton" onClick={()=>{props.setsel(props.code); props.setselapp(props.code); props.setrut(props.rut.concat(props.code))}} style={{
+    const disabled = isDisabled();
+    return <button title={tooltip()} key={d.i}  className={"PaletteButton" + (disabled ? " PaletteDisabled" : "")} onClick={()=>{props.setsel(props.code); props.setselapp(props.code); props.setrut(props.rut.concat(props.code))}} style={{
         outline: chosen ? "2px solid rgba(0,0,0,0.4)" : "0",
-        borderRadius: chosen ? "2px" : "0"
-    }}>
+        borderRadius: chosen ? "2px" : "0",
+    }} disabled={disabled}>
         <img src={src} alt={props.code}/>
     </button>
 }

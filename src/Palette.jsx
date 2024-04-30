@@ -1,11 +1,32 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import tabTiles from "./tabTiles.js";
-import PaletteTile from "./PaletteTile.jsx"
+import PaletteTile from "./PaletteTile.jsx";
 
 function Palette(props) {
     const [currentTab, setTab] = useState(null);
     const [sel, setSel] = useState(null);
     const [clickHistory, setCH] = useState([]);
+
+    const [screenSize, setScreenSize] = useState({
+        width: window.innerWidth,
+        height: window.innerHeight,
+    });
+
+    useEffect(() => {
+        const handleResize = () => {
+            setScreenSize({
+                width: window.innerWidth,
+                height: window.innerHeight,
+            });
+        };
+
+        window.addEventListener('resize', handleResize);
+
+        // Clean up the event listener when the component unmounts.
+        return () => {
+            window.removeEventListener('resize', handleResize);
+        };
+    }, []);
 
     function makeTabs() {
         const tabs = "Circles,Blockers,Misc,Cannons,All";
@@ -32,7 +53,7 @@ function Palette(props) {
                 let j = 0;
                 for (let it of tiles) {
                     if (it[0] === "?" || it.length > 2) continue;
-                    item.push(<PaletteTile code={it} key={j} sel={sel} setsel={setSel} setselapp={props.ss} rut={clickHistory} setrut={setCH} />)
+                    item.push(<PaletteTile cd={props.cd} code={it} key={j} sel={sel} setsel={setSel} setselapp={props.ss} rut={clickHistory} setrut={setCH} />)
                     j++;
                 }
                 items.push(<div key={i} className="PaletteSectionA">
@@ -79,7 +100,7 @@ function Palette(props) {
                         textAlign: "right",
                         float: "right",
                         marginRight: "3px"
-                    }}>v1.0.1</b>
+                    }}>v1.2.0</b>
                 </div>
             </div>
         </div>

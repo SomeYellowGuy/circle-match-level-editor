@@ -1,44 +1,41 @@
-import { useEffect } from "react";
-import { useState } from "react";
+import { useEffect, useState, useRef } from "react";
+
+//const remote = window.require('@electron/remote');
+//const fs = remote.require('fs');
+//const electronDialog = remote.dialog;
 
 function Levels(props) {
-    const [handle, setHandle] = useState(null)
-    const [levelNums, setLN] = useState([])
+    const [levelNums, setLN] = useState([]);
+    const [update, updateLevels] = useState(0);
+
+    const inputLevels = useRef(null);
 
     useEffect(()=>{
         setLN(props.lns)
     }, [props.lns])
 
     async function generateHandle() {
-        let h = await window.showDirectoryPicker();
-        setHandle(h);
-        let numbers = [];
-        // Get levels that exist.
-        for await (const [n, data] of h.entries()) {
-            if (n.slice(-5) !== ".json") continue;
-            if (isNaN(Number(n.slice(0, -5)))) continue;
-            const lD = JSON.parse(await (await data.getFile()).text());
-            if (Number(n.slice(0, -5)) > 0) numbers.push([Number(n.slice(0, -5)), lD.hard || 0]);
-        }
-        setLN(numbers.sort((a,b)=>a-b));
-        props.slns(numbers.sort((a,b)=>a-b))
-    }
-
-    async function getLevelData(l) {
-        for await (const [n, data] of handle.entries()) {
-            if (n !== l+".json") continue;
-            const fH = await data.getFile();
-            const lD = JSON.parse(await fH.text());
-            return lD;
-        }
-        return null;
+        // Get the levels of a directory.
+        window.API.fileSystem.readDirLevels().then((ob) => {
+            let lns = [];
+            for (const level in ob.levels) {
+                lns.push([level, ob.levels[level].hard]);
+            }
+            setLN(lns.sort((a,b)=>a[0] - b[0]));
+            props.slns(lns.sort((a,b)=>a[0] - b[0]));
+            // Update the directory.
+            props.sd(ob.dir);
+        });
     }
 
     function applySelectedLevel(o) {
-        getLevelData(o).then((r)=>{
-            props.sl(o);
-            load(r);
-        })
+        window.API.fileSystem.readLevel(o, props.dir).then((data) => {
+            if (data.invalid) return;
+            if (data && props.dir) {
+                props.sl(o)
+                load(data);
+            }
+        });
     }
 
     function load(d) {
@@ -55,8 +52,41 @@ function Levels(props) {
             star2: d.targets[1],
             star3: d.targets[2],
             increaseColours: !!d.increaseColours,
-            immediateShowdown: d.immediateShowdown ?? true
+            immediateShowdown: d.immediateShowdown ?? true,
+            currentSelectedTele: 1,
         });
+        // Load cameras.
+        let foundCameras = [];
+        if (d.camera?.cameras)
+        for (let c of d.camera?.cameras) {
+            foundCameras.push(c);
+        }
+        // Load cameras' requirements.
+        let foundRequirements = [];
+        if (d.camera?.requirements)
+        for (let r of d.camera?.requirements) {
+            let req = [];
+            for (let i of r) {
+                let g = i.type.replace(/_/g, ' ').split(" ").map(o=>o[0].toUpperCase()+o.slice(1)).join(" ");
+                if (i === "metal_ball") g = "Metal Ball (L)";
+                if (i === "watermelon") g = "Watermelon (L)";
+                if (i === "donut") g = "Donut (L)";
+                req.push({
+                    type: g,
+                    complete: i.complete || false
+                })
+            }
+            foundRequirements.push(req);
+        }
+        let cd = {
+            enabled: d.camera?.enabled || false,
+            width: d.camera?.width || 9,
+            height: d.camera?.height || 9,
+            showBackwards: d.camera?.showBackwards || true,
+            cameras: foundCameras,
+            requirements: foundRequirements
+        };
+        props.setcd(cd);
         // Load goals.
         let go = [];
         for (let i of d.goals) {
@@ -66,7 +96,7 @@ function Levels(props) {
             if (i.type === "metal_ball") g.type = "Metal Ball (L)";
             if (i.type === "watermelon") g.type = "Watermelon (L)";
             if (i.type === "donut") g.type = "Donut (L)";
-            if (i.type==="button") g.optional = true;
+            if (i.type === "button" || i.type === "paint") g.optional = true;
             g.option = !!(!!g.optional && !!i.amount)
             if (i.type !== "score") g.amount = i.amount || 3
             go.push(g)
@@ -111,6 +141,7 @@ function Levels(props) {
         props.st(editorTiles);
         // Load cannons.
         let ca = [];
+        if (d.cannons)
         for (let i of d.cannons) {
             if (!i.type) return false;
             let c = {};
@@ -133,17 +164,78 @@ function Levels(props) {
             return <button 
                 className={"LNButton" + (props.l === o[0] ? " LNSel" : (" h" + n + "LNColor"))}
                 key={o[0]}
-                onClick={() => applySelectedLevel(o[0])}
+                onClick={() => {
+                    applySelectedLevel(o[0])
+                }}
         >{o[0]}</button>});
         return comps;
     }
 
+    useEffect(() => {
+        function loadLevels() {
+            const files = inputLevels.current.files;
+            // Loop through every File found.
+            let numbers = [];
+            let filtered = [];
+            for (const o of files) {
+                if (o.name.slice(-5) === ".json" && !isNaN(Number(o.name.slice(0, -5)))) {
+                    filtered.push(o);
+                }
+            }
+            let len = filtered.length;
+            let i = 0;
+            for (const file of filtered) {
+                const last = len - 1 === i;
+                // Get levels that exist.
+                const n = file.name;
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const result = e.target.result;
+                    if (!result) return;
+                    // Parse the text as JSON.
+                    const data = JSON.parse(result);
+                    numbers.push([Number(n.slice(0, -5)), data.hard || 0]);
+                    if (last) updateLevels(update + 1);
+                };
+                reader.readAsText(file);
+                i++;
+            }
+            let sorted = numbers.sort((a,b)=>a[0]-b[0]);
+            setLN(sorted);
+            props.slns(sorted);
+        }
+
+        function loadLevelsSel() {
+            loadLevels();
+        }
+
+        if (inputLevels && inputLevels.current) {
+            inputLevels.current.addEventListener("change", loadLevelsSel, false);
+            return function cleanup() {
+                inputLevels.current.removeEventListener("change", loadLevelsSel, false);
+            };
+        }
+    });
+
     return (
         <div className="Levels">
-            <b>Levels</b>
-            <button className="LevelsButton" onClick={generateHandle}>
-                Select Level Folder
-            </button>
+            <div>
+                <b>Levels</b>
+            </div>
+            {(typeof window.showDirectoryPicker === "undefined") ?
+                (
+                <div className="LevelsButton LevelsButtonDiv">
+                    <input style={{ display: "none" }} type="file" id="files" webkitdirectory="" directory="" multiple="" ref={inputLevels}/>
+                    <label htmlFor="files">Select Level Folder</label>
+                </div>
+                )
+                :
+                (
+                <button className="LevelsButton" onClick={generateHandle}>
+                    Select Level Folder
+                </button>
+                )
+            }
             <button className="LevelsButton" onClick={()=>{
                 const newLevel = Math.max(...levelNums.map(o => o[0]))+1;
                 if (newLevel === -Infinity) return;
@@ -156,12 +248,14 @@ function Levels(props) {
                 props.st(t);
                 props.steles([]);
                 props.sg([]);
+                props.setcd({ enabled: false, cameras: [], requirements: [] });
+                props.sc([]);
                 props.sl(newLevel);
             }}>
                 Create New Level
             </button>
             <div id="LNDiv">
-                {levelNums.length > 0 ? makeLevelButtons() : (handle ? "There are no levels! Create one!" : "Select a folder to get started!")}
+                {levelNums.length > 0 ? makeLevelButtons() : (levelNums.length === 0 ? "There are no levels! Create one!" : "Select a folder to get started!")}
             </div>
         </div>
     )

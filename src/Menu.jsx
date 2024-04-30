@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
-import tooltips from "./Tooltips";
-import conflictingTiles from "./conflicts"
-import levelThings from "./levelThings";
+import tooltips from "./Tooltips.js";
+import conflictingTiles from "./conflicts.js"
+import levelThings from "./levelThings.js";
 
 function Menu(props) {
     const [menuState, setMS] = useState({
@@ -16,8 +16,15 @@ function Menu(props) {
         star2: 20000,
         star3: 30000,
         increaseColours: false,
-        immediateShowdown: true
+        immediateShowdown: true,
+        camera: { enabled: false },
+        cannons: []
     });
+
+    const [cameraData, setCameraData] = useState({
+        enabled: false,
+        cameras: []
+    })
 
     let [R, setR] = useState(0)
 
@@ -27,41 +34,108 @@ function Menu(props) {
     const [teleporters, setTeles] = useState([]);
     const [cannons, setCannons] = useState([]);
 
-    function handleChange(c, v, isCheckbox) {
-        let MS = { ...menuState };
+    function handleChange(c, v, isCheckbox, specialData) {
+        let MS;
+        MS = specialData === "camera" ? { ...cameraData } : { ...menuState };
         MS[c] = isNaN(Number(v)) || isCheckbox ? v : Number(v);
-        setMS(MS);
-        props.sm(MS);
+        // What about width and height?
+        switch (specialData) {
+            case "camera":
+                if (c == "enabled" && !v) {
+                    // Set width and height back.
+                    let s = { ...menuState }
+                    s.width = Math.min(s.width, 12);
+                    s.height = Math.min(s.height, 9);
+                    setMS(s);
+                    props.sm(s);
+                }
+                setCameraData(MS);
+                props.setcd(MS);
+                break;
+            default:
+                if (c === "width") {
+                    // WIDTH changed
+                    let newTiles = props.t;
+                    if (newTiles[0].length < v) {
+                        // Add a new tile to each array.
+                        for (let i = 0; i < newTiles.length; i++) newTiles[i].push([]);
+                    }
+                } else if (c === "height") {
+                    // HEIGHT changed.
+                    let newTiles = props.t;
+                    if (newTiles.length < v) {
+                        // Add a new array.
+                        let n = [];
+                        for (let i = 0; i < newTiles[0].length; i++) n.push([]);
+                        newTiles.push(n)
+                    }
+                }
+                setMS(MS);
+                props.sm(MS);
+        }
     }
 
     function makeSec(name) {
-        return <b style={{
+        return <div className="MenuSectionDiv"><b style={{
             fontWeight: 700,
             fontSize: "40px",
             margin: "10px"
         }}>{name}</b>
+        </div>
     }
 
-    function makeField(name, type, p) {
+    function makeSubSec(name) {
+        return <div className="MenuSectionDiv"><b style={{
+            fontWeight: 400,
+            fontSize: "25px",
+            margin: "10px"
+        }}>{name}</b>
+        </div>
+    }
+
+    function makeSubSubSec(name) {
+        return <div className="MenuSectionDiv"><i><b style={{
+            fontWeight: 300,
+            fontSize: "20px",
+            margin: "10px",
+        }}>{name}</b></i>
+        </div>
+    }
+
+    function makeInfo(info, isSmall) {
+        let list = [];
+        let i = 0;
+        for (const line of info.split("\n")) {
+            list.push(<li key={i++}>{line}</li>);
+        }
+        return (<div className={isSmall ? "MenuInfoSmall" : "MenuInfo"}>
+            <ul>{list}</ul>
+        </div>);
+    }
+
+    function makeField(name, type, p, specialData) {
         let items = [];
+        let data = specialData === "camera" ? cameraData[p.code] : menuState[p.code]
+        let disabled = specialData === "camera" && !cameraData.enabled && p.code !== "enabled";
         switch (type) {
             case "checkbox":
                 // Extra params: dc
                 items.push(<div>
                     <label htmlFor="input" className="MenuAreaLabel">{name}<input type="checkbox" className="MenuAreaField"
-                        onChange={(e) => handleChange(p.code, e.target.checked, true)} checked={menuState[p.code]} /></label>
+                        onChange={(e) => handleChange(p.code, e.target.checked, true, specialData)} checked={data} disabled={disabled} /></label>
                 </div>);
-                return <div className="MenuArea">{items}</div>;
+                return <div className="MenuArea" key={p.code}>{items}</div>;
             case "num":
                 // Extra params: min, max, step, code, width
                 items.push(<div>
                     <label htmlFor="quantity" className={"MenuAreaLabel"}>{name}<input type="number"
-                        className={"MenuAreaField"} onChange={(e) => handleChange(p.code, e.target.value)}
-                        min={p.min} max={p.max} step={p.step} value={menuState[p.code]} style={{
+                        className={"MenuAreaField"} onChange={(e) => handleChange(p.code, e.target.value, false, specialData)}
+                        disabled={disabled}
+                        min={p.min} max={p.max} step={p.step} value={data} style={{
                             width: p.width + "%"
                         }} /></label>
                 </div>);
-                return <div className="MenuArea">{items}</div>;
+                return <div className="MenuArea" key={p.code}>{items}</div>;
             case "dropdown":
                 // Extra params: options, styled
                 let options = [];
@@ -69,7 +143,7 @@ function Menu(props) {
                     let option = p.options[i];
                     let style = null;
                     if (p.styled) style = p.styled[i];
-                    options.push(<option style={{
+                    options.push(<option key={i} style={{
                         backgroundColor: style,
                         color: p.outlineStyled[i]
                     }}>{option}</option>)
@@ -77,17 +151,19 @@ function Menu(props) {
                 items.push(<div>
                     <label htmlFor="quantity" className="MenuAreaLabel">{name}
                         <select
-                            className="MenuAreaField" onChange={(e) => handleChange(p.code, e.target.value)}
-                            value={menuState[p.code]} style={{
+                            className="MenuAreaField" onChange={(e) => handleChange(p.code, e.target.value, false, specialData)}
+                            value={data} style={{
                                 width: p.width + "%"
-                            }}>
+                            }}
+                            disabled={disabled}>
                             {options}
                         </select>
                     </label>
                 </div>);
-                return <div className="MenuArea">{items}</div>;
+                return <div className="MenuArea" key={p.code}>{items}</div>;
         }
     }
+
     function makeSpecial(spec) {
         let items = [];
         switch (spec) {
@@ -95,13 +171,13 @@ function Menu(props) {
                 return <div className="MenuWHField MenuAreaEDLabel">
                     <label htmlFor="quantity">Width<input type="number" className="MenuWHFieldNum"
                         onChange={(e) => handleChange("width", e.target.value)}
-                        min={1} max={12} step={1} value={menuState.width} style={{
+                        min={1} max={props.cd.enabled ? Infinity : 12} step={1} value={menuState.width} style={{
                             width: "16%"
                         }} /></label>
                     <label htmlFor="quantity" id="MenuHeight">Height<input type="number" className="MenuWHFieldNum"
                         onChange={(e) => handleChange("height", e.target.value)}
-                        min={1} max={9} step={1} value={menuState.height} style={{
-                            height: "16%"
+                        min={1} max={props.cd.enabled ? Infinity : 9} step={1} value={menuState.height} style={{
+                            width: "16%"
                         }} /></label>
                 </div>
             default: return <></>
@@ -112,7 +188,7 @@ function Menu(props) {
         // Create a goal.
         let oldGoals = [...goals];
         oldGoals.push({
-            type: "score"
+            type: "Score"
         });
         setGoals(oldGoals)
         props.sg(oldGoals)
@@ -123,8 +199,9 @@ function Menu(props) {
         let oldTeles = [...teleporters];
         oldTeles.push({
             from: [1, 1],
-            to: [9, 9]
+            to: [1, 1]
         });
+        props.setsct(String(Number(oldTeles.length)));
         setTeles(oldTeles);
         props.steles(oldTeles);
     }
@@ -151,7 +228,7 @@ function Menu(props) {
     }
 
     function removeTele(i) {
-        // Remove the goal.
+        // Remove the teleporters.
         let oldTeles = [...teleporters];
         oldTeles.splice(i, 1);
         setTeles(oldTeles)
@@ -183,16 +260,6 @@ function Menu(props) {
         props.sg(g);
     }
 
-    function changeTeleAttribute(n, attrib, to, c) {
-        let g = [...teleporters];
-        let prop = attrib.slice(0,-1);
-        let t = g[n][prop];
-        t[Number(attrib[attrib.length-1])] = Number(to);
-        g[n][prop] = t;
-        setTeles(g);
-        props.steles(g);
-    }
-
     function changeCAttribute(n, attrib, to) {
         let g = [...cannons];
         g[n][attrib] = attrib === "type" ? to : Number(to);
@@ -216,45 +283,30 @@ function Menu(props) {
         let items = [];
         // Make an Add Goal button.
         items.push(<button id="MenuGoalAdd" onClick={addTele} key={0}>
-            Add Teleporter
+            Add Teleporters
+        </button>)
+        items.push(<button id="MenuGoalAdd" onClick={() => {
+            removeTele(props.sct - 1)
+        }} key={1}>
+            Delete Selected Teleporters
         </button>)
 
-        for (let i = 0; i < teleporters.length; i++) {
-            let teleporter = teleporters[i]
-            let teleItems = [];
-            teleItems.push(<button className="MenuGoalRemove" onClick={() => removeTele(i)}>×</button>)
-            teleItems.push(<div>
-                <label htmlFor="quantity" className={"MenuAreaLabel"}>From
-                        <input type="number"
-                            className={"MenuTele"} onChange={(e) => changeTeleAttribute(i, "from1", e.target.value)}
-                            min={1} max={menuState.height} step={1} value={teleporter.from[1]} style={{
-                                width: "40%"
-                            }} />
-                        <input type="number"
-                            className={"MenuTele"} onChange={(e) => changeTeleAttribute(i, "from0", e.target.value)}
-                            min={1} max={menuState.width} step={1} value={teleporter.from[0]} style={{
-                                width: "40%"
-                            }} />                                     </label>
-            </div>);
-            teleItems.push(<div>
-                <label htmlFor="quantity" className={"MenuAreaLabel"}>To
-                        <input type="number"
-                            className={"MenuTele"} onChange={(e) => changeTeleAttribute(i, "to1", e.target.value)}
-                            min={1} max={menuState.height} step={1} value={teleporter.to[1]} style={{
-                                width: "40%"
-                            }} />
-                        <input type="number"
-                            className={"MenuTele"} onChange={(e) => changeTeleAttribute(i, "to0", e.target.value)}
-                            min={1} max={menuState.width} step={1} value={teleporter.to[0]} style={{
-                                width: "40%"
-                            }} />                                     </label>
-            </div>);
-            items.push(<div key={i + 1} className="MenuGoal" style={{
-                height: "15%"
-            }}>
-                {teleItems}
-            </div>);
-        }
+        items.push(<div>
+            <label htmlFor="quantity" key={2} className={"MenuAreaLabel"}>Selected ID
+                    <input type="number"
+                        className={"MenuTele"} onChange={(e) => {
+                            props.setsct(e.target.value);
+                        }}
+                        min={0} max={teleporters.length} step={1} value={props.sct} style={{
+                            width: "80%"
+                        }} />                               </label>
+        </div>);
+
+        items.push(makeInfo(
+            `Deselect the palette selection for the following:
+            Left click: ENTRY teleporter
+            Right click: EXIT teleporter`
+        ))
 
         return items;
     }
@@ -376,8 +428,10 @@ function Menu(props) {
         setR(r => r + 1);
         setTeles(props.teles);
         setCannons(props.c);
+        props.setmct(currentTab);
+        setCameraData(props.cd)
         return () => { };
-    }, [props.l, menuState, props.currentTab, props.m, props.g, props.teles, props.c]);
+    }, [props.l, props.cd, menuState, currentTab, props.m, props.g, props.teles, props.c]);
 
     function saveLevel() {
         // Make basic metadata.
@@ -389,17 +443,15 @@ function Menu(props) {
             height: props.m.height === 9 ? undefined : props.m.height,
             colours: props.m.colours,
             black: props.m.black,
-            hard: Math.max(0,"Normal Level,Hard Level,Super Hard Level,Extremely Hard Level".split(",").indexOf(props.m.hard)),
+            hard: Math.max(0, "Normal Level,Hard Level,Super Hard Level,Extremely Hard Level".split(",").indexOf(props.m.hard)),
             immediateShowdown: !props.m.immediateShowdown ? false : undefined,
             increaseColours: props.m.increaseColours ? true : undefined
         }
         // Goals!
         let goals = props.g
         let dataGoals = goals.map(o=>({
-            type: o.type.toLowerCase() === "metal ball (l)" ? "metal_ball" : (
-                o.type.toLowerCase() === "watermelon (l)" ? "watermelon" : (
-                 o.type.toLowerCase() === "donut (l)" ? "donut" :
-                    o.type.replace(/ /g, '_').toLowerCase())),
+            type: o.type.slice(-3) === "(L)" ? o.type.replace(/ /g, '_').toLowerCase().slice(0, -4) :
+                    o.type.replace(/ /g, '_').toLowerCase(),
             amount: (o.optional ? (o.option ? Number(o.amount) : null) : Number(o.amount) || null)
         }));
         data.goals = dataGoals;
@@ -435,43 +487,154 @@ function Menu(props) {
             interval: o.interval,
             layer: o.layer
         }));
-        // Allow thr user to save!
-        const picker = window.showSaveFilePicker({
-            suggestedName: props.l+".json",
-            types: [
-                {
-                    description: "Circle Match Level",
-                    accept: {
-                        "application/json": [".json"]
+        // Add camera data if required.
+        if (cameraData.enabled) {
+            const requirements = cameraData.requirements;
+            data.camera = cameraData;
+            let reqs = [];
+            for (const req of requirements) {
+                let r = req.map(o=>{
+                    let s = {
+                        type: o.type.slice(-3) === "(L)" ? o.type.replace(/ /g, '_').toLowerCase().slice(0, -4) :
+                            o.type.replace(/ /g, '_').toLowerCase(),
+                        complete: o.complete || false
                     }
-                }
-            ]
-        });
-        picker.then(async o=>{
-            const file = await o.createWritable();
-            await file.write(JSON.stringify(data));
-            await file.close();
-            // Add to levelNums.
-            if (!props.lns.map(o => o[0]).includes(props.l)) {
-                let m = props.lns;
-                m.push([props.l, null]);
-                props.slns(m);
+                    if (!s.complete) delete s.complete;
+                    return s;
+                })
+                reqs.push(r);
             }
-        })
+            data.camera.requirements = reqs;
+        }
+        // Allow the user to save!
+        window.API.fileSystem.saveLevel(props.l, props.dir, data).then(() => {})
     }
     
     function makeTabs() {
-        const tabs = "Properties,Goals,Cannons,Teleporters";
+        const tabs = "Properties,Goals,Cannons,Teleporters,Camera,???";
         return tabs.split(",").map((o, i) => {
             const k = o.toLowerCase();
             const selected = (!currentTab && k === "properties") || currentTab === k;
-            return <button className={"MenuTab" + (selected ? " MenuSelectedTab" : "")} key={i} onClick={() => setCurrentTab(o.toLowerCase())}>
+            return <button className={"MenuTab" + (selected ? " MenuSelectedTab" : "")} key={i} onClick={() => {
+                if (o !== "???") setCurrentTab(o.toLowerCase())
+                }
+            }>
                 {o}
             </button>
         })
     }
 
+    function addNewRequirement(camera, req) {
+        let r = cameraData.requirements;
+        while (r.length <= camera) {
+            r.push([]);
+        }
+        r[camera].push({
+            type: req,
+            complete: false
+        });
+        setCameraData({
+            enabled: true,
+            width: cameraData.width,
+            height: cameraData.height,
+            cameras: [ ...cameraData.cameras ],
+            requirements: r,
+            showBackwards: cameraData.showBackwards
+        });
+    }
+
+    function removeRequirement(camera, req) {
+        let r = cameraData.requirements;
+        while (r.length <= camera) {
+            r.push([]);
+        }
+        r[camera].splice(req, 1);
+        setCameraData({
+            enabled: true,
+            width: cameraData.width,
+            height: cameraData.height,
+            cameras: [ ...cameraData.cameras ],
+            requirements: r,
+            showBackwards: cameraData.showBackwards
+        });
+    }
+
+    function changeRequirementAttribute(camera, req, attrib, value) {
+        let r = cameraData.requirements;
+        while (r.length <= camera) {
+            r.push([]);
+        }
+        r[camera][req][attrib] = value;
+        setCameraData({
+            enabled: true,
+            width: cameraData.width,
+            height: cameraData.height,
+            cameras: [ ...cameraData.cameras ],
+            requirements: r,
+            showBackwards: cameraData.showBackwards
+        });
+    }
+
+    function makeRequirements() {
+        let list = [];
+        let availableRequirements = [];
+        const gt = levelThings.goals;
+        for (let j = 0; j < gt.length; j++) {
+            if (levelThings.notReqs.includes(gt[j])) continue;
+            availableRequirements.push(<option key={j} style={{
+                backgroundColor: getC(gt[j]),
+                color: "black"
+            }}>{gt[j]}</option>);
+        }
+
+        for (let i = 0; i < cameraData.cameras.length; i++) {
+            list.push(makeSubSec("Camera #" + (i+1)));
+            if (i !== cameraData.cameras.length - 1) {
+                list.push(makeSubSubSec("Requirements"));
+                list.push(<button id="MenuGoalAdd" onClick={() => {addNewRequirement(i, "Button")}} key={i}>
+                    Add New Requirement
+                </button>)
+                // Show every requirement.
+                const requirements = cameraData.requirements[i];
+                if (requirements)
+                for (let j = 0; j < requirements.length; j++) {
+                    let items = [];
+                    const t = requirements[j];
+                    items.push(<button className="MenuGoalRemove" onClick={() => removeRequirement(i, j)} key={1}>×</button>)
+                    items.push(<label className="MenuAreaLabel" key={2}>Type
+                        <select
+                            className="MenuAreaField" onChange={(e) => changeRequirementAttribute(i, j, "type", e.target.value)}
+                            value={t.type} style={{
+                                width: "62%"
+                            }}>
+                            {availableRequirements}
+                        </select>
+                    </label>)
+                    items.push(<div>
+                        <label htmlFor="input" className={"MenuAreaLabel"} key={3}>Complete?<input type="checkbox"
+                            className={"MenuAreaField"} onChange={(e) => changeRequirementAttribute(i, j, "complete", e.target.checked)}
+                            min={1} max={Infinity} step={1} checked={t.complete} style={{
+                                width: "40%"
+                            }} /></label>
+                    </div>);
+                    list.push(<div className="MenuGoal" style={{
+                        height: "12%"
+                    }}>
+                        {items}
+                    </div>);
+                }
+            } else {
+                list.push(makeInfo(`No requirements may be set for the final camera.`, true))
+            }
+        }
+        return list;
+    }
+
     function getFilteredTab() {
+        const notTeleporters = currentTab !== "teleporters";
+        if (notTeleporters) {
+            props.setsct(0);
+        }
         switch (currentTab) {
             case "goals":
                 return [makeSec("Goals"), makeGoals(goals)];
@@ -479,6 +642,15 @@ function Menu(props) {
                 return [makeSec("Cannons"), makeCannons()];
             case "teleporters":
                 return [makeSec("Teleporters"), makeTeleporters()];
+            case "camera":
+                return [
+                    makeSec("Camera"),
+                    makeField("Enabled?", "checkbox", { code: "enabled", dc: false }, "camera"),
+                    makeField("Camera Width", "num", { code: "width", min: 1, max: 12, step: 2, value: 9, width: 20 }, "camera"),
+                    makeField("Camera Height", "num", { code: "height", min: 1, max: 9, step: 2, value: 9, width: 20 }, "camera"),
+                    makeField("Show Backwards", "checkbox", { code: "showBackwards", dc: true }, "camera"),
+                    makeRequirements()
+                ];
             // Default: Properties.
             default:
                 return [
@@ -499,7 +671,6 @@ function Menu(props) {
                     makeField("Increase colo(u)rs?", "checkbox", { code: "increaseColours", dc: false }),
                     makeField("Immediate showdown?", "checkbox", { code: "immediateShowdown", dc: true })
                 ]
-            
         }
     }
 

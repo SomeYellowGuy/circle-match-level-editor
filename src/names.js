@@ -40,8 +40,12 @@ const names = {
     "b2": "2-Layered Bubble",
     "b3": "3-Layered Bubble",
     // Misc
+    "--": "No Tile",
     "-O": "Empty Tile",
     "*S": "Spawn Point",
+    "*s": "Only Select Tile",
+    "-C": "Remove all Cannon Tiles",
+    "-c": "Remove Camera",
     "B1": "1-Layered Button",
     "B2": "2-Layered Button",
     "B3": "3-Layered Button",
@@ -49,6 +53,7 @@ const names = {
     "G2": "Held Globe",
     "G-": "Globe Exit",
     "PT": "Paint Tile",
+    "cp": "Camera",
     // Cannons
     "CW": "Watermelon Cannon",
     "CD": "Donut Cannon",

@@ -1,11 +1,28 @@
-import at from "./aliasTiles";
+import at from "./aliasTiles.js";
 
+/**
+ * A list of tabs with their own categories.
+ * Here are some common first tile character meanings:
+ * 
+ * `*`: Related to tiles or circles
+ * `M`: Metal balls
+ * `B`: Buttons
+ * `b`: Bubbles
+ * `D`: Drains
+ * `d`: Donuts
+ * `J`: Jawbreakers
+ * `W`: Watermelons
+ * `G`: Globes
+ * `P`: Paint related
+ * `C`: Cannons
+ * `c`: Camera related
+ */
 const tabTiles = {
     circles: {
         name: "Circles & Tiles",
         tiles: {
             name: "Tiles",
-            tiles: ["--","-O","*S","-C"]
+            tiles: ["--","-O","*S","*s","-C","cp","-c"]
         },
         circles: {
             name: "Regular and Black Circles",

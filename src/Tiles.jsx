@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import names from "./names.js"
+import names from "./names.js";
 
 function Tiles(props) {
 

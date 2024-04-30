@@ -2,6 +2,7 @@ body {
 	margin: 0;
 	padding: 0;
 	overflow: hidden;
+	background-color: #adceff;
 }
 
 input[type='checkbox'] {
@@ -70,6 +71,14 @@ option:checked {
 	font-size: 18px;
 	font-weight: 400;
 	font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.LevelsButtonDiv {
+	display: flex;
+  	justify-content: center;
+  	align-content: center;
+  	flex-direction: column;
+	margin: 0 auto;
 }
 
 #LNDiv {
@@ -219,6 +228,12 @@ option:checked {
 	background-color: #ffe4bb;
 }
 
+.PaletteDisabled {
+	opacity: 0.5;
+	background-color: rgba(0, 0, 0, 0.3);
+	border-radius: 10px;
+}
+
 /* Menu */
 
 .Menu {
@@ -290,6 +305,10 @@ option:checked {
 	margin-left: 10px;
 }
 
+.MenuSectionDiv {
+	width: 100%;
+}
+
 #MenuGoalAdd {
 	width: 90%;
 	background-color: #557427;
@@ -340,14 +359,32 @@ option:checked {
 	background-color: #497a00;
 }
 
+.MenuInfo {
+	background-color: rgba(0,0,0,0.15);
+	margin-top: 40px !important;
+	border-radius: 9px;
+	width: 90%;
+	margin: 0 auto
+}
+
+.MenuInfoSmall {
+	background-color: rgba(0,0,0,0.15);
+	margin-top: 20px !important;
+	border-radius: 9px;
+	width: 90%;
+	margin: 0 auto
+}
+
 /* Board */
 
 .Board {
-	position: absolute;
 	top: 150px;
 	left: 260px;
-	width: calc(100vw - 250px - 260px);
-	height: calc(100vh - 150px);
+}
+
+.BoardDiv {
+	max-height: 743px;
+	max-width: 1377px;
 }
 
 /* Tiles */
@@ -416,4 +453,8 @@ option:checked {
 .oopsrecommendation {
 	font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 	font-size: 35px !important;
+}
+
+input {
+	font-size: 0;
 }
