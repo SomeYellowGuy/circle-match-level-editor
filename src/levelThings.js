@@ -18,7 +18,7 @@ const levelThings = {
      * All possible types of a cannon of a level.
      */
     cannonTypes:
-    `Watermelon,Globe,Striped Circle,Radial Circle,Extra Time Circle`.split(",")
+    `Watermelon,Globe,Vertical Striped Circle,Horizontal Striped Circle,Radial Circle,Extra Time Circle`.split(",")
 }
 
 export default levelThings;

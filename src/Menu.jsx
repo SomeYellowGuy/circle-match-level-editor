@@ -489,7 +489,7 @@ function Menu(props) {
         }));
         // Add camera data if required.
         if (cameraData.enabled) {
-            const requirements = cameraData.requirements;
+            const requirements = structuredClone(cameraData.requirements);
             data.camera = cameraData;
             let reqs = [];
             for (const req of requirements) {
@@ -508,6 +508,10 @@ function Menu(props) {
         }
         // Allow the user to save!
         window.API.fileSystem.saveLevel(props.l, props.dir, data).then(() => {})
+        console.log(props.l)
+        if (!props.lns.some(o => o[0] === props.l)) {
+            props.slns(props.lns.concat([[props.l, data.hard]]))
+        }
     }
     
     function makeTabs() {

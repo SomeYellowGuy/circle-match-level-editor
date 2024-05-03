@@ -37,16 +37,14 @@ const startLocalServer = (done) => {
 function createWindow() {
   // Create the browser window.
   const mainWindow = new BrowserWindow({
-    width: 800,
-    height: 600,
+    width: 1550,
+    height: 900,
     webPreferences: {
       contextIsolation: true,
       preload: path.join(__dirname, "preload.js")
     },
     icon: path.join(__dirname, "public", "favicon.png")
   });
-
-  mainWindow.maximize();
 
   // and load the index.html of the app.
   //   mainWindow.loadFile('index.html')
@@ -148,6 +146,7 @@ ipcMain.handle('save-level', async (e, level, dir, data) => {
   if (!dir) return {invalid: true};
   // Now get the level data the level.
   fs.writeFileSync(path.join(dir, level + ".json"), dataToLevelText(data));
+  return e.returnValue;
 });
 
 /**

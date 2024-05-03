@@ -82,7 +82,7 @@ function Levels(props) {
             enabled: d.camera?.enabled || false,
             width: d.camera?.width || 9,
             height: d.camera?.height || 9,
-            showBackwards: d.camera?.showBackwards || true,
+            showBackwards: (d.camera && "showBackwards" in d.camera) ? d.camera?.showBackwards : true,
             cameras: foundCameras,
             requirements: foundRequirements
         };
@@ -248,8 +248,22 @@ function Levels(props) {
                 props.st(t);
                 props.steles([]);
                 props.sg([]);
-                props.setcd({ enabled: false, cameras: [], requirements: [] });
+                props.setcd({ enabled: false, cameras: [], requirements: [], width: 9, height: 9});
                 props.sc([]);
+                props.sm({
+                    width: 9,
+                    height: 9,
+                    timemove: 30,
+                    timed: false,
+                    colours: 4,
+                    black: false,
+                    hard: 0,
+                    star1: 10000,
+                    star2: 20000,
+                    star3: 30000,
+                    increaseColours: false,
+                    immediateShowdown: true
+                })
                 props.sl(newLevel);
             }}>
                 Create New Level
