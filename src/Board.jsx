@@ -2,6 +2,7 @@ import { useRef, useEffect, useState } from "react";
 import at from "./aliasTiles.js";
 import conflictingTiles from "./conflicts.js";
 import tilesSource from "./tiles.png";
+import levelThings from "./levelThings.js";
 
 function Board(props) {
     const boardRef = useRef(null)
@@ -65,11 +66,10 @@ function Board(props) {
         let tileX = Math.floor(x / tileSize);
         let tileY = Math.floor(y / tileSize);
         let oldTiles = tiles;
-        if (tileX < props.m.width && tileY < props.m.height) {
+        if (tileX < props.m.width && tileY < props.m.height && tileX >= 0 && tileY >= 0) {
             if (props.ts && props.ts[0] === tileX && props.ts[1] === tileY) props.sts(null);
             else props.sts([tileX, tileY])
-        }
-        if (tileX < props.m.width && tileY < props.m.height) {
+
             // For selecting teleporter positions.
             if (props.sct > 0 && props.mct === "teleporters") {
                 // Place a teleporter somewhere.
@@ -101,7 +101,7 @@ function Board(props) {
                             for (const camera of props.cd.cameras) {
                                 if (camera[0] === tileX && camera[1] === tileY) {
                                     // Delete the camera.
-                                    let newCameras = props.cd;
+                                    let newCameras = structuredClone(props.cd);
                                     newCameras.cameras.splice(i, 1);
                                     props.setcd(newCameras);
                                 }
@@ -133,11 +133,19 @@ function Board(props) {
                             for (const camera of props.cd.cameras) {
                                 if (camera[0] === tileX && camera[1] === tileY) {
                                     // Delete the camera.
-                                    let newCameras = props.cd;
+                                    let newCameras = structuredClone(props.cd);
                                     newCameras.cameras.splice(i, 1);
                                     props.setcd(newCameras);
                                 }
                                 i++;
+                            }
+                        } else if (props.s === "-W") {
+                            // Delete any wall on that tile.
+                            for (let i = 0; i <= oldTiles[tileY][tileX].length; i++) {
+                                const tile = oldTiles[tileY][tileX][i];
+                                if (tile && levelThings.isWall(tile)) {
+                                    oldTiles[tileY][tileX].splice(i);
+                                }
                             }
                         } else if (!(oldTiles[tileY]?.[tileX].includes(props.s))) {
                             if (oldTiles[tileY]?.[tileX]) for (let i = 0; i < oldTiles[tileY][tileX].length; i++) {
@@ -172,20 +180,22 @@ function Board(props) {
                         break;
                 }
                 // Sort the tiles.
-                let bTiles = [];
-                let pTiles = [];
-                let mTiles = [];
-                let eTiles = [];
-                let tTiles = [];
+                let bTiles = []; // Buttons
+                let pTiles = []; // Paint
+                let mTiles = []; // Anything else (usually normal tiles like circles)
+                let eTiles = []; // Encasing blockers
+                let tTiles = []; // Tile markers
+                // Order (shown above the rest ------> shown behind the rest)
+                // Tile markers - Encasing blockers - Normal tiles - Buttons - Paint
                 if (oldTiles[tileY][tileX].length) for (let i = 0; i < oldTiles[tileY][tileX].length || 0; i++) {
                     let tile = oldTiles[tileY][tileX][i];
                     if (tile[0] === "B") bTiles.push(tile);
                     else if (tile === "PT") pTiles.push(tile);
                     else if (conflictingTiles[1].includes(tile)) eTiles.push(tile);
-                    else if ("G-".split(".").includes(tile)) tTiles.push(tile)
+                    else if (levelThings.tileMarkers.includes(tile)) tTiles.push(tile)
                     else mTiles.push(tile);
                 }
-                oldTiles[tileY][tileX] = bTiles.concat(pTiles, tTiles, mTiles, eTiles)
+                oldTiles[tileY][tileX] = pTiles.concat(bTiles, mTiles, eTiles, tTiles)
                 setTiles(oldTiles)
                 props.st(oldTiles);
             }
@@ -253,56 +263,78 @@ function Board(props) {
         // Get the first camera viewing area.
         const firstCamera = props?.cd?.cameras[0];
 
+        for (let y = 0; y < MAX_HEIGHT; y++)
+            for (let x = 0; x < MAX_WIDTH; x++) {
+                ctx.fillStyle = "rgba(0,0,0,0.65)";
+                const unrelated = []; // Technically not tiles.
+
+                let filled = false;
+                for (const t of tiles[y]?.[x]) {
+                    if (!unrelated.includes(t)) filled = true;
+                }
+                if (filled) ctx.fillRect(x * tileSize, y * tileSize, tileSize, tileSize);
+
+                ctx.fillStyle = "rgba(190,190,190,0.1)";
+                if (
+                    firstCamera &&
+                    Math.abs(firstCamera[0] - x) <= (props.cd.width - 1) / 2 &&
+                    Math.abs(firstCamera[1] - y) <= (props.cd.height - 1) / 2
+                   )
+                ctx.fillRect(x * tileSize, y * tileSize, tileSize, tileSize);
+            }
+
         for (let y = 0; y < MAX_HEIGHT; y++) {
             for (let x = 0; x < MAX_WIDTH; x++) {
                 if (tiles?.[y]?.[x]) {
-                    ctx.fillStyle = "rgba(0,0,0,0.65)";
-                    const unrelated = []; // Technically not tiles.
 
-                    let filled = false;
-                    for (const t of tiles[y]?.[x]) {
-                        if (!unrelated.includes(t)) filled = true;
-                    }
-                    if (filled) ctx.fillRect(x * tileSize, y * tileSize, tileSize, tileSize);
-
-                    ctx.fillStyle = "rgba(190,190,190,0.1)";
-                    if (
-                        firstCamera &&
-                        Math.abs(firstCamera[0] - x) <= (props.cd.width - 1) / 2 &&
-                        Math.abs(firstCamera[1] - y) <= (props.cd.height - 1) / 2
-                       )
-                    ctx.fillRect(x * tileSize, y * tileSize, tileSize, tileSize);
                     for (let i = 0; i < tiles[y][x].length; i++) {
                         let tile = tiles[y][x][i];
                         let k = tile;
                         if (tiles[y][x].some(o => "*0,*1,*2,*3,*4,*5,*B".split(",").includes(o))) {
                             // +Special?
                             if (tiles[y][x].some(o => "*-,*|,*O,*+".split(",").includes(o))) {
-                                if (tile[0] === "*" && !["*/", "*S"].includes(tile)) {
+                                if (tile[0] === "*" && !["*/", "*S"].concat(levelThings.customSpawns).includes(tile)) {
                                     k = tiles[y][x].filter(o => "*0,*1,*2,*3,*4,*5,*B".split(",").includes(o))[0] +
                                         tiles[y][x].filter(o => "*-,*|,*O,*+".split(",").includes(o))[0]
                                 }
                             }
                         }
+                        if (k[0] == "S") k = "*S";
                         const d = getDimensions(k);
                         const other_90_percents = ["G-", "*S", "PT", "B1", "B2", "B3", "J1", "J2", "J3", "J4"];
-                        const is_90_percent = conflictingTiles[1].includes(tile) || other_90_percents.includes(tile);
+                        const is_90_percent = conflictingTiles[1].includes(tile) || other_90_percents.includes(tile) || tile[0] == "S";
                         const is_85_percent = tile[0] === "d";
                         let ds = (1 - (is_90_percent ? 0.9 : (is_85_percent ? 0.85 : 0.75))) * tileSize;
+                        if (tile[0] == "S") {
+                            // Add a number to be displayed.
+                            ctx.fillStyle = "rgba(255,255,255,0.7)";
+                            ctx.strokeStyle = "rgba(255,255,255,0.9)";
+                            ctx.font = "20px Segoe UI";
+                            ctx.textAlign = "center";
+                            ctx.fillText(tile[1], (x + 0.15) * tileSize + ds / 2, (y + 0.15) * tileSize + ds / 2);
+                            ctx.font = "23px Segoe UI";
+                            ctx.strokeText(tile[1], (x + 0.15) * tileSize + ds / 2, (y + 0.15) * tileSize + ds / 2);
+                        }
                         const s = tileSize;
                         if (tile === "G2") ds = 0.1 * tileSize;
-                        if ("M1.M2.M3.M4.M5.M6".split(".").includes(tile)) ds = 0.15 * tileSize;
-                        if ("W1.W2.W3".split(".").includes(tile)) ds = 0.225 * tileSize;
+                        if (levelThings.isMetalBall(tile)) ds = 0.15 * tileSize;
+                        if (levelThings.isWatermelon(tile)) ds = 0.225 * tileSize;
+                        if (levelThings.isWall(tile)) ds = -0.05;
+                        const offset = levelThings.getOffsetOf(tile);
 
-                        if (tile !== "--" && tile !== "-O" && tile[0] !== "C") ctx.drawImage(src, d.x, d.y, d.w, d.h, x * tileSize + ds / 2, y * tileSize + ds / 2, s - ds, s - ds)
+                        if (tile !== "--" && tile !== "-O" && tile[0] !== "C")
+                        ctx.drawImage(src, d.x, d.y, d.w, d.h, x * tileSize + ds / 2 + offset[0], y * tileSize + ds / 2 + offset[1], s - ds, s - ds)
                         let c = 0;
-                        ctx.fillStyle = "rgba(0,0,0,0.4)";
+                        ctx.fillStyle = "rgba(0,0,0,0.1)";
                         if (tiles[y][x].some(o => o[0] === "C")) ctx.fillRect(x * tileSize, y * tileSize, tileSize, 0.3 * tileSize);
                         for (let cannon of tiles[y][x].filter(o => o[0] === "C").reverse()) {
                             const d = getDimensions("??" + cannon)
                             const ds = 0.75 * tileSize;
                             const l = tiles[y][x].filter(o => o[0] === "C").length + 1
-                            ctx.drawImage(src, d.x, d.y, d.w, d.h, (x + 0.4) * tileSize + ds / 2 - (c * tileSize / l) - 5, (y - 0.35) * tileSize + ds / 2, s - ds, s - ds);
+                            ctx.drawImage(src, d.x, d.y, d.w, d.h,
+                                (x + 0.4) * tileSize + ds / 2 - (c * tileSize / l) - 5,
+                                (y - 0.35) * tileSize + ds / 2 + offset[1],
+                            s - ds, s - ds);
                             c++;
                         }
                         ctx.fillStyle = "rgba(255,255,255,0.15)";

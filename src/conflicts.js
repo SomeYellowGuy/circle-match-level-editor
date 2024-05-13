@@ -1,3 +1,5 @@
+import levelThings from "./levelThings";
+
 let c = [
     // Layer 0
     ["**", "*0", "*1", "*2", "*3", "*4", "*5", "*B", "*/",
@@ -12,9 +14,16 @@ let c = [
     // Buttons
     ["B1", "B2", "B3"],
     // Paint
-    ["PT"]
+    ["PT"],
+    // Spawn points
+    ["*S"].concat(levelThings.customSpawns),
+    // Walls
+    ["E^"],
+    ["Ev"],
+    ["E<"],
+    ["E>"]
 ]
 
-c.push(c[0].slice(8).concat(["*O","*-","*|","*+"]))
+c.push(c[0].slice(8).concat(["*O","*-","*|","*+","**"]))
 
 export default c;

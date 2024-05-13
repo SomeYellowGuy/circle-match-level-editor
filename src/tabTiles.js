@@ -22,7 +22,11 @@ const tabTiles = {
         name: "Circles & Tiles",
         tiles: {
             name: "Tiles",
-            tiles: ["--","-O","*S","*s","-C","cp","-c"]
+            tiles: ["--","-O","*S","*s","cp"]
+        },
+        removing: {
+            name: "Removing",
+            tiles: ["-C","-c","-W"]
         },
         circles: {
             name: "Regular and Black Circles",
@@ -61,6 +65,13 @@ const tabTiles = {
             tiles: ["J1", "J2", "J3", "J4"]
         }
     },
+    walls: {
+        name: "Walls",
+        candyBeads: {
+            name: "Candy Beads",
+            tiles: ["E^","Ev","E<","E>"]
+        }
+    },
     misc: {
         name: "Miscellanous",
         globes: {
@@ -74,6 +85,10 @@ const tabTiles = {
         paint: {
             name: "Paint",
             tiles: ["PT"]
+        },
+        customSpawns: {
+            name: "Custom Spawn Points",
+            tiles: ["S1", "S2", "S3", "S4", "S5", "S6", "S7", "S8", "S9"]
         }
     },
     all: {
@@ -91,7 +106,7 @@ const tabTiles = {
         },
         layered: {
             name: "Layered Cannons",
-            tiles: ["CW"]
+            tiles: ["CW", "CJ", "Cd"]
         },
         circle: {
             name: "Circle Cannons",

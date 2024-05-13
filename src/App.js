@@ -27,8 +27,13 @@ function App() {
 	const [menuCurrentTab, setmct] = useState("properties");
 	const [cameraData, setCameraData] = useState({
 		enabled: false,
-		cameras: []
-	})
+		cameras: [],
+		requirements: [],
+		showBackwards: true,
+		width: 9,
+		height: 9
+	});
+	const [spawnData, setSpawnData] = useState([]);
 	const [menuS, setMs] = useState({
         timed: false,
         timemove: 30,
@@ -41,7 +46,8 @@ function App() {
         star3: 30000,
         increaseColours: false,
 		black: false,
-        immediateShowdown: true
+        immediateShowdown: true,
+		preferredColours: { enabled: false }
     });
 
 	return (
@@ -57,6 +63,7 @@ function App() {
 				t={tiles} st={setTiles}
 				lns={lns} slns={setLNS} sc={setC} c={c}
 				cd={cameraData} setcd={setCameraData}
+				spd={spawnData} setspd={setSpawnData}
 			/>
 			<div className={"BoardDiv"} style={{
 				overflow: level > 0 ? "scroll" : "auto"
@@ -80,6 +87,7 @@ function App() {
 					slns={setLNS} lns={lns}
 					sc={setC}
 					cd={cameraData} setcd={setCameraData}
+					setspd={setSpawnData} spd={spawnData}
 				/>
 				<Tiles
 					ts={ts} t={tiles} st={setTiles}

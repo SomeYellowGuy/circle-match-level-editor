@@ -29,7 +29,8 @@ function PaletteTile(props) {
         return names[props.code];
     }
 
-    const d = getDimensions(props.code);
+    const code = props.code[0] == "S" ? "*S" : props.code;
+    const d = getDimensions(code);
 
     useEffect(()=>{
         setChosen(props.sel === props.code);
@@ -48,11 +49,18 @@ function PaletteTile(props) {
 
     }, [d.x, d.y, d.w, d.h, src])
 
+    let customText = "";
+    if (props.code[0] == "S") {
+        // Add text.
+        customText = props.code[1];
+    }
+
     const disabled = isDisabled();
-    return <button title={tooltip()} key={d.i}  className={"PaletteButton" + (disabled ? " PaletteDisabled" : "")} onClick={()=>{props.setsel(props.code); props.setselapp(props.code); props.setrut(props.rut.concat(props.code))}} style={{
+    return <button title={tooltip()} key={d.i} className={"PaletteButton" + (disabled ? " PaletteDisabled" : "")} onClick={()=>{props.setsel(props.code); props.setselapp(props.code); props.setrut(props.rut.concat(props.code))}} style={{
         outline: chosen ? "2px solid rgba(0,0,0,0.4)" : "0",
         borderRadius: chosen ? "2px" : "0",
     }} disabled={disabled}>
+        {customText}
         <img src={src} alt={props.code}/>
     </button>
 }

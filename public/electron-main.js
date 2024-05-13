@@ -103,17 +103,22 @@ ipcMain.handle('read-dir-levels', async () => {
   // Open a dialog.
   const { dialog } = require('electron');
   const dir = dialog.showOpenDialogSync({ properties: ['openDirectory'] });
-  if (!dir) return {};
+  if (!dir) return {good: false};
   // Loop through every file in the directory.
   const files = fs.readdirSync(dir[0]);
   // Now get the level data of each one.
   for (const file of files) {
     if (!isValidLevelName(file)) continue;
     const text = fs.readFileSync(path.join(dir[0], file));
-    const data = JSON.parse(text);
+    let data;
+    try {
+      data = JSON.parse(text);
+    } catch (e) {
+      console.warn(file + " is invalid JSON. Skipping it...")
+    }
     if (data) levels[Number(file.slice(0, -5))] = { hard: data.hard || 0};
   }
-  return {levels: levels, dir: dir[0]};
+  return {good: true, levels: levels, dir: dir[0]};
 })
 
 /**

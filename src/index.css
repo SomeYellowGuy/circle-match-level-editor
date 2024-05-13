@@ -108,6 +108,8 @@ option:checked {
 
 .h3LNColor { background-color: #191919; }
 
+.h4LNColor { background-color: #25264a; }
+
 .LNButton:hover {
 	background-color: #3d8eb7;
 }
@@ -161,7 +163,7 @@ option:checked {
 
 .PaletteTab {
 	height: 100%;
-	width: calc(20% - 10px);
+	width: calc(16.666% - 10px);
 	margin: 0;
 	font-size: 13px;
 	font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -181,6 +183,8 @@ option:checked {
 	width: 40px;
 	height: 40px;
 	background-color: rgba(0, 0, 0, 0);
+	color: #eeeeee;
+	font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 	border: 0;
 	padding: 4px;
 	margin: 0;
@@ -210,6 +214,14 @@ option:checked {
 
 #PaletteBlockersTab:hover {
 	background-color: #bbe9ff;
+}
+
+#PaletteWallsTab {
+	background-color: #ff99fa;
+}
+
+#PaletteWallsTab:hover {
+	background-color: #ffbbff;
 }
 
 #PaletteMiscTab {

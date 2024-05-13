@@ -56,12 +56,31 @@ const names = {
     "cp": "Camera",
     // Cannons
     "CW": "Watermelon Cannon",
-    "CD": "Donut Cannon",
+    "Cd": "Donut Cannon",
+    "CJ": "Jawbreaker Cannon",
     "CG": "Globe Cannon",
     "C-": "Horizontal Striped Circle Cannon",
     "C|": "Vertical Striped Circle Cannon",
     "CO": "Radial Circle Cannon",
-    "C+": "Extra Time Circle Cannon"
+    "C+": "Extra Time Circle Cannon",
+    /// Walls
+    "-W": "Remove all Wall Tiles",
+    // Beads
+    "E^": "Beads (Up)",
+    "E<": "Beads (Left)",
+    "E>": "Beads (Right)",
+    "Ev": "Beads (Down)",
+    // Custom Spawn Points
+    "S1": "Custom Spawn Point #1",
+    "S2": "Custom Spawn Point #2",
+    "S3": "Custom Spawn Point #3",
+    "S4": "Custom Spawn Point #4",
+    "S5": "Custom Spawn Point #5",
+    "S6": "Custom Spawn Point #6",
+    "S7": "Custom Spawn Point #7",
+    "S8": "Custom Spawn Point #8",
+    "S9": "Custom Spawn Point #9"
+
 }
 
 export default names;

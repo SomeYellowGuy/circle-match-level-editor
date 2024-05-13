@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef } from "react";
+import levelThings from "./levelThings";
 
 //const remote = window.require('@electron/remote');
 //const fs = remote.require('fs');
@@ -17,6 +18,7 @@ function Levels(props) {
     async function generateHandle() {
         // Get the levels of a directory.
         window.API.fileSystem.readDirLevels().then((ob) => {
+            if (!ob.good) return;
             let lns = [];
             for (const level in ob.levels) {
                 lns.push([level, ob.levels[level].hard]);
@@ -40,40 +42,50 @@ function Levels(props) {
 
     function load(d) {
         // Load various things of the data.
+        let pc = { enabled: false };
+        // Load preferred colors.
+        if (d.preferredColours) {
+            pc.enabled = true;
+            for (let i = 0; i < levelThings.colors.length; i++) {
+                const p = 1 << i;
+                pc[levelThings.colors[i].toLowerCase()] = ((d.preferredColours & p) === p);
+            };
+        }
         props.sm({
             timed: !!d.time,
             timemove: d.time || d.moves,
             colours: d.colours,
+            preferredColours: d.preferredColours,
             black: d.black,
             width: d.width || 9,
             height: d.height || 9,
-            hard: ["Normal Level","Hard Level","Super Hard Level","Extremely Hard Level"][d.hard || 0],
+            hard: levelThings.hardTypes[d.hard || 0],
             star1: d.targets[0],
             star2: d.targets[1],
             star3: d.targets[2],
             increaseColours: !!d.increaseColours,
             immediateShowdown: d.immediateShowdown ?? true,
             currentSelectedTele: 1,
+            preferredColours: pc,
         });
         // Load cameras.
         let foundCameras = [];
         if (d.camera?.cameras)
-        for (let c of d.camera?.cameras) {
+        for (let c of d.camera.cameras) {
             foundCameras.push(c);
         }
         // Load cameras' requirements.
         let foundRequirements = [];
         if (d.camera?.requirements)
-        for (let r of d.camera?.requirements) {
+        for (let r of d.camera.requirements) {
             let req = [];
             for (let i of r) {
                 let g = i.type.replace(/_/g, ' ').split(" ").map(o=>o[0].toUpperCase()+o.slice(1)).join(" ");
-                if (i === "metal_ball") g = "Metal Ball (L)";
-                if (i === "watermelon") g = "Watermelon (L)";
-                if (i === "donut") g = "Donut (L)";
+                if (levelThings.layeredGoals.includes(i.type)) g += " (L)";
                 req.push({
                     type: g,
-                    complete: i.complete || false
+                    complete: i.complete || false,
+                    wait: i.wait || false
                 })
             }
             foundRequirements.push(req);
@@ -82,7 +94,7 @@ function Levels(props) {
             enabled: d.camera?.enabled || false,
             width: d.camera?.width || 9,
             height: d.camera?.height || 9,
-            showBackwards: (d.camera && "showBackwards" in d.camera) ? d.camera?.showBackwards : true,
+            showBackwards: (d.camera && ("showBackwards" in d.camera)) ? d.camera.showBackwards : true,
             cameras: foundCameras,
             requirements: foundRequirements
         };
@@ -142,13 +154,14 @@ function Levels(props) {
         // Load cannons.
         let ca = [];
         if (d.cannons)
-        for (let i of d.cannons) {
+        for (let i of structuredClone(d.cannons)) {
             if (!i.type) return false;
             let c = {};
             c.type = i.type.replace(/_/g, ' ').split(" ").map(o=>o[0].toUpperCase()+o.slice(1)).join(" ");
             c.max = i.max;
-            if (i.layers) c.layers = i.layers;
-            ca.push(c)
+            c.interval = i.interval || 0;
+            if (levelThings.layeredCannons.includes(i.type)) c.layer = i.layer || 1;
+            ca.push(c);
         }
         props.sc(ca || [])
         let teleporters = [];
@@ -156,6 +169,18 @@ function Levels(props) {
             if (tc[i][0] && tc[i][1]) teleporters.push({from: [...tc[i][0]].map(o=>o+1), to: [...tc[i][1]].map(o=>o+1)})
         }
         props.steles(teleporters);
+        // Load spawning.
+        let spawnData = [];
+        if (d.spawning)
+        for (const number of d.spawning) {
+            let data = {};
+            for (let i = 0; i < levelThings.colors.length; i++) {
+                const p = 1 << i;
+                data[levelThings.colors[i].toLowerCase()] = ((number & p) === p);
+            }
+            spawnData.push(data);
+        }
+        props.setspd(spawnData);
     }
 
     function makeLevelButtons() {
@@ -248,7 +273,7 @@ function Levels(props) {
                 props.st(t);
                 props.steles([]);
                 props.sg([]);
-                props.setcd({ enabled: false, cameras: [], requirements: [], width: 9, height: 9});
+                props.setcd({ enabled: false, cameras: [], requirements: [], width: 9, height: 9, showBackwards: true});
                 props.sc([]);
                 props.sm({
                     width: 9,
@@ -257,6 +282,7 @@ function Levels(props) {
                     timed: false,
                     colours: 4,
                     black: false,
+                    preferredColours: { enabled: false },
                     hard: 0,
                     star1: 10000,
                     star2: 20000,
@@ -265,6 +291,7 @@ function Levels(props) {
                     immediateShowdown: true
                 })
                 props.sl(newLevel);
+                props.setspd([]);
             }}>
                 Create New Level
             </button>

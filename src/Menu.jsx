@@ -18,13 +18,20 @@ function Menu(props) {
         increaseColours: false,
         immediateShowdown: true,
         camera: { enabled: false },
-        cannons: []
+        cannons: [],
+        preferredColours: { enabled: false }
     });
 
     const [cameraData, setCameraData] = useState({
         enabled: false,
-        cameras: []
+        cameras: [],
+        showBackwards: true,
+        requirements: [],
+		width: 9,
+		height: 9
     })
+
+    const [spawnData, setSpawnData] = useState([]);
 
     let [R, setR] = useState(0)
 
@@ -117,6 +124,9 @@ function Menu(props) {
         let items = [];
         let data = specialData === "camera" ? cameraData[p.code] : menuState[p.code]
         let disabled = specialData === "camera" && !cameraData.enabled && p.code !== "enabled";
+        if (!specialData && (p.code === "colours" || p.code === "black")) {
+            disabled = menuState.preferredColours.enabled;
+        }
         switch (type) {
             case "checkbox":
                 // Extra params: dc
@@ -213,7 +223,7 @@ function Menu(props) {
             type: "watermelon",
             layer: 1,
             max: 5,
-            interval: 1
+            interval: 0
         });
         setCannons(c);
         props.sc(c);
@@ -263,8 +273,7 @@ function Menu(props) {
     function changeCAttribute(n, attrib, to) {
         let g = [...cannons];
         g[n][attrib] = attrib === "type" ? to : Number(to);
-        const layered = "watermelon".split(",")
-        if (attrib === "type" && layered.includes(to.toLowerCase())) g[n].layer = 1;
+        if (attrib === "type" && levelThings.layeredCannons.includes(to.toLowerCase())) g[n].layer = 1;
         else if (attrib === "type") g[n].layer = undefined;
         setCannons(g);
         props.sc(g);
@@ -303,9 +312,9 @@ function Menu(props) {
         </div>);
 
         items.push(makeInfo(
-            `Deselect the palette selection for the following:
-            Left click: ENTRY teleporter
-            Right click: EXIT teleporter`
+            `On this tab, perform these to place:
+            Left click: an ENTRY teleporter
+            Right click: an EXIT teleporter`
         ))
 
         return items;
@@ -394,7 +403,7 @@ function Menu(props) {
             cItems.push(<div>
                 <label htmlFor="input" className={"MenuAreaLabel"}>Maximum<input type="number"
                     className={"MenuAreaField"} onChange={(e) => changeCAttribute(i, "max", e.target.value)}
-                    min={1} max={Infinity} step={1} value={c.max} style={{
+                    min={0} max={Infinity} step={1} value={c.max} style={{
                         width: "30%"
                     }} /></label>
             </div>);
@@ -414,11 +423,14 @@ function Menu(props) {
             </div>);
             items.push(
                 <div key={i + 1} className="MenuGoal" style={{
-                    height: "25%"
+                    height: c.layer ? "23%" : "19%"
                 }}>
                     {cItems}
                 </div>);
         }
+        items.push(
+            makeInfo("An interval of 0 means it will always try spawning something.")
+        )
         return items;
     }
 
@@ -429,9 +441,10 @@ function Menu(props) {
         setTeles(props.teles);
         setCannons(props.c);
         props.setmct(currentTab);
-        setCameraData(props.cd)
+        setCameraData(props.cd);
+        setSpawnData(props.spd);
         return () => { };
-    }, [props.l, props.cd, menuState, currentTab, props.m, props.g, props.teles, props.c]);
+    }, [props.l, props.cd, props.spd, menuState, currentTab, props.m, props.g, props.teles, props.c]);
 
     function saveLevel() {
         // Make basic metadata.
@@ -443,7 +456,7 @@ function Menu(props) {
             height: props.m.height === 9 ? undefined : props.m.height,
             colours: props.m.colours,
             black: props.m.black,
-            hard: Math.max(0, "Normal Level,Hard Level,Super Hard Level,Extremely Hard Level".split(",").indexOf(props.m.hard)),
+            hard: Math.max(0, levelThings.hardTypes.indexOf(props.m.hard)),
             immediateShowdown: !props.m.immediateShowdown ? false : undefined,
             increaseColours: props.m.increaseColours ? true : undefined
         }
@@ -464,7 +477,7 @@ function Menu(props) {
                 let o = "";
                 if (tile.length === 0) o = "--"                             // None
                 else o = tile.join("");
-                if (!tile.some(o=>conflictingTiles[0].includes(o) || conflictingTiles[3].includes(o) ||
+                if (!tile.some(o=>conflictingTiles[0].includes(o) ||
                     o === "-O") && tile.length > 0) 
                             o += "-O";
                 for (let te in teleporters) {
@@ -490,33 +503,61 @@ function Menu(props) {
         // Add camera data if required.
         if (cameraData.enabled) {
             const requirements = structuredClone(cameraData.requirements);
-            data.camera = cameraData;
+            data.camera = structuredClone(cameraData);
+            delete data.camera.requirements;
             let reqs = [];
             for (const req of requirements) {
                 let r = req.map(o=>{
                     let s = {
                         type: o.type.slice(-3) === "(L)" ? o.type.replace(/ /g, '_').toLowerCase().slice(0, -4) :
                             o.type.replace(/ /g, '_').toLowerCase(),
-                        complete: o.complete || false
+                        complete: o.complete || false,
+                        wait: o.wait || false
                     }
                     if (!s.complete) delete s.complete;
+                    if (!s.wait) delete s.wait;
                     return s;
                 })
                 reqs.push(r);
             }
             data.camera.requirements = reqs;
         }
+        // Spawning!
+        if (spawnData.length > 0) {
+            data.spawning = [];
+            // Save the following as per:
+            // Red: +1
+            // Blue: +2
+            // ...
+            // Black: +64
+            for (const d of structuredClone(spawnData)) {
+                let number = 0;
+                for (const color in d) {
+                    if (d[color]) {
+                        const pow = levelThings.colors.map(o => o.toLowerCase()).indexOf(color);
+                        number += (1 << pow);
+                    }
+                }
+                data.spawning.push(number);
+            }
+        }
+        let number = 0;
+        for (const color in structuredClone(props.m.preferredColours)) {
+            if (props.m.preferredColours[color]) {
+                const pow = levelThings.colors.map(o => o.toLowerCase()).indexOf(color);
+                number += (1 << pow);
+            }
+        }
+        data.preferredColours = number;
         // Allow the user to save!
         window.API.fileSystem.saveLevel(props.l, props.dir, data).then(() => {})
-        console.log(props.l)
         if (!props.lns.some(o => o[0] === props.l)) {
             props.slns(props.lns.concat([[props.l, data.hard]]))
         }
     }
     
     function makeTabs() {
-        const tabs = "Properties,Goals,Cannons,Teleporters,Camera,???";
-        return tabs.split(",").map((o, i) => {
+        return levelThings.levelTabs.map((o, i) => {
             const k = o.toLowerCase();
             const selected = (!currentTab && k === "properties") || currentTab === k;
             return <button className={"MenuTab" + (selected ? " MenuSelectedTab" : "")} key={i} onClick={() => {
@@ -535,7 +576,8 @@ function Menu(props) {
         }
         r[camera].push({
             type: req,
-            complete: false
+            complete: false,
+            wait: false
         });
         setCameraData({
             enabled: true,
@@ -619,10 +661,18 @@ function Menu(props) {
                             className={"MenuAreaField"} onChange={(e) => changeRequirementAttribute(i, j, "complete", e.target.checked)}
                             min={1} max={Infinity} step={1} checked={t.complete} style={{
                                 width: "40%"
-                            }} /></label>
+                            }} disabled={t.wait}/></label>
+                    </div>);
+                    if (t.type === "Globe")
+                    items.push(<div>
+                        <label htmlFor="input" className={"MenuAreaLabel"} key={4}>Wait?<input type="checkbox"
+                            className={"MenuAreaField"} onChange={(e) => changeRequirementAttribute(i, j, "wait", e.target.checked)}
+                            min={1} max={Infinity} step={1} checked={t.wait} style={{
+                                width: "40%"
+                            }} disabled={t.complete}/></label>
                     </div>);
                     list.push(<div className="MenuGoal" style={{
-                        height: "12%"
+                        height: ((t.type === "Globe") ? 16 : 12) + "%"
                     }}>
                         {items}
                     </div>);
@@ -632,6 +682,94 @@ function Menu(props) {
             }
         }
         return list;
+    }
+
+    function addSpawn() {
+        if (spawnData.length < 9) {
+            let d = [ ...spawnData ];
+            d.push({});
+            setSpawnData(d);
+            props.setspd(d);
+        }
+    }
+
+    function removeSpawn(i) {
+        let d = [ ...spawnData ];
+        d.splice(i, 1);
+        setSpawnData(d);
+        props.setspd(d);
+    }
+
+    function changeSpawnAttribute(i, color, value) {
+        if (i === -1) {
+            // Edit the preferred color instead.
+            let s = structuredClone(menuState);
+            s.preferredColours[color.toLowerCase()] = value;
+            setMS(s);
+            props.sm(s);
+        } else {
+            let d = [ ...spawnData ];
+            d[i][color.toLowerCase()] = value;
+            setSpawnData(d);
+            props.setspd(d);
+        }
+    }
+
+    function makeSpawns() {
+        let items = [];
+        // Preferred Colors
+        let spawn = [];
+        items.push(makeSubSec("Preferred Colo(u)rs"));
+        items.push(<div style={{height: "6%"}}>
+            <label htmlFor="input" className={"MenuAreaLabel"} style={{top: "50%",  marginTop: "3%"}}>Enabled?<input type="checkbox"
+                className={"MenuAreaField"} onChange={(e) => changeSpawnAttribute(-1, "enabled", e.target.checked)}
+                checked={menuState.preferredColours.enabled} style={{
+                    width: "40%",
+                }} /></label>
+        </div>);
+        for (const color of levelThings.colors) {
+            spawn.push(<div>
+                <label htmlFor="input" className={"MenuAreaLabel"} key={color}>{color}<input type="checkbox"
+                    className={"MenuAreaField"} onChange={(e) => changeSpawnAttribute(-1, color, e.target.checked)}
+                    checked={menuState.preferredColours[color.toLowerCase()] || false} style={{
+                        width: "40%"
+                    }} disabled={!menuState.preferredColours.enabled}/></label>
+            </div>);
+        }
+        items.push(<div className="MenuGoal" style={{
+            height: "33%"
+        }}>
+            {spawn}
+        </div>)
+
+        // Custom Spawns
+        items.push(makeSubSec("Custom Spawning"));
+        items.push(<button id="MenuGoalAdd" onClick={addSpawn}>
+            Add Spawn Configuration
+        </button>)
+        for (let i = 0; i < spawnData.length; i++) {
+            const data = spawnData[i];
+            let spawn = [];
+            items.push(makeSubSec("Configuration #" + (i+1)));
+            spawn.push(<button className="MenuGoalRemove" onClick={() => removeSpawn(i)} key="remove">×</button>)
+
+            for (const color of levelThings.colors) {
+                spawn.push(<div>
+                    <label htmlFor="input" className={"MenuAreaLabel"} key={color}>{color}<input type="checkbox"
+                        className={"MenuAreaField"} onChange={(e) => {changeSpawnAttribute(i, color, e.target.checked)}}
+                        checked={data[color.toLowerCase()] || false} style={{
+                            width: "40%"
+                        }}/></label>
+                </div>);
+            }
+
+            items.push(<div className="MenuGoal" style={{
+                height: "37%"
+            }}>
+                {spawn}
+            </div>)
+        }
+        return items;
     }
 
     function getFilteredTab() {
@@ -655,6 +793,8 @@ function Menu(props) {
                     makeField("Show Backwards", "checkbox", { code: "showBackwards", dc: true }, "camera"),
                     makeRequirements()
                 ];
+            case "spawning":
+                return [makeSec("Spawning"), makeSpawns(), makeInfo(`Add a new spawn configuration to set what circles spawn for that number.`)];
             // Default: Properties.
             default:
                 return [
@@ -665,8 +805,8 @@ function Menu(props) {
                     makeField("Include Black Circles", "checkbox", { code: "black", dc: false }),
                     makeSpecial("wh"),
                     makeField("Difficulty", "dropdown", {
-                        options: ["Normal", "Hard Level", "Super Hard Level", "Extremely Hard Level"], styled: ["#999999", "#ff8800", "#ff0033", "#333333"],
-                        outlineStyled: ["black", "black", "white", "white"], width: 56, code: "hard"
+                        options: levelThings.hardTypes, styled: ["#999999", "#ff8800", "#ff0033", "#333333", "#222c33"],
+                        outlineStyled: ["black", "black", "white", "white", "white"], width: 56, code: "hard"
                     }),
 
                     makeField(<><strong style={{ color: "#ff3333" }}>★ </strong>Target</>, "num", { min: 1, max: Infinity, step: 1, value: 10000, width: 50, code: "star1" }),

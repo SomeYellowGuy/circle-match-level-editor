@@ -29,7 +29,7 @@ function Palette(props) {
     }, []);
 
     function makeTabs() {
-        const tabs = "Circles,Blockers,Misc,Cannons,All";
+        const tabs = "Circles,Blockers,Walls,Misc,Cannons,All";
         return tabs.split(",").map((o, i) =>
             <button className="PaletteTab" id={"Palette" + o + "Tab"} key={i} onClick={() => setTab(o)}>
                 {tabTiles[o.toLowerCase()].name}
@@ -100,7 +100,7 @@ function Palette(props) {
                         textAlign: "right",
                         float: "right",
                         marginRight: "3px"
-                    }}>v1.2.0</b>
+                    }}>v1.3.0</b>
                 </div>
             </div>
         </div>
