@@ -206,6 +206,9 @@ function Menu(props) {
 
     function addTele() {
         // Create a teleporter.
+        // There is a maximum of 499 pairs of teleporters.
+        // T001, T002 - T003, T004 - ... - T997, T998
+        if (teleporters.length >= 499) return;
         let oldTeles = [...teleporters];
         oldTeles.push({
             from: [1, 1],
