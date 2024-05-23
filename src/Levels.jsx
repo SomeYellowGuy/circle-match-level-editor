@@ -65,6 +65,8 @@ function Levels(props) {
             star3: d.targets[2],
             increaseColours: !!d.increaseColours,
             immediateShowdown: d.immediateShowdown ?? true,
+            seed: d.seed || 100,
+            seedEnabled: d.seed !== null && d.seed !== undefined,
             currentSelectedTele: 1,
             preferredColours: pc,
         });
@@ -287,6 +289,8 @@ function Levels(props) {
                     star1: 10000,
                     star2: 20000,
                     star3: 30000,
+                    seed: 100,
+                    seedEnabled: false,
                     increaseColours: false,
                     immediateShowdown: true
                 })

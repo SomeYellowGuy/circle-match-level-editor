@@ -44,6 +44,8 @@ function App() {
         star1: 10000,
         star2: 20000,
         star3: 30000,
+		seed: 100,
+		seedEnabled: false,
         increaseColours: false,
 		black: false,
         immediateShowdown: true,

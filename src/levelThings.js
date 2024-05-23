@@ -49,7 +49,7 @@ const levelThings = {
      * Tells all level tabs.
     */
     levelTabs:
-    `Properties,Goals,Cannons,Teleporters,Camera,Spawning`.split(","),
+    `Properties,Goals,Cannons,Teleporters,Camera,Spawning,Miscellanous,???`.split(","),
 
     /**
      * Tels all colors.

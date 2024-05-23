@@ -127,6 +127,7 @@ function Menu(props) {
         if (!specialData && (p.code === "colours" || p.code === "black")) {
             disabled = menuState.preferredColours.enabled;
         }
+        if (!specialData && p.code === "seed") disabled = !menuState.seedEnabled;
         switch (type) {
             case "checkbox":
                 // Extra params: dc
@@ -181,12 +182,12 @@ function Menu(props) {
                 return <div className="MenuWHField MenuAreaEDLabel">
                     <label htmlFor="quantity">Width<input type="number" className="MenuWHFieldNum"
                         onChange={(e) => handleChange("width", e.target.value)}
-                        min={1} max={props.cd.enabled ? Infinity : 12} step={1} value={menuState.width} style={{
+                        min={1} max={props.cd.enabled ? 256 : 12} step={1} value={menuState.width} style={{
                             width: "16%"
                         }} /></label>
                     <label htmlFor="quantity" id="MenuHeight">Height<input type="number" className="MenuWHFieldNum"
                         onChange={(e) => handleChange("height", e.target.value)}
-                        min={1} max={props.cd.enabled ? Infinity : 9} step={1} value={menuState.height} style={{
+                        min={1} max={props.cd.enabled ? 256 : 9} step={1} value={menuState.height} style={{
                             width: "16%"
                         }} /></label>
                 </div>
@@ -461,7 +462,8 @@ function Menu(props) {
             black: props.m.black,
             hard: Math.max(0, levelThings.hardTypes.indexOf(props.m.hard)),
             immediateShowdown: !props.m.immediateShowdown ? false : undefined,
-            increaseColours: props.m.increaseColours ? true : undefined
+            increaseColours: props.m.increaseColours ? true : undefined,
+            seed: props.m.seedEnabled ? props.m.seed : undefined
         }
         // Goals!
         let goals = props.g
@@ -798,12 +800,18 @@ function Menu(props) {
                 ];
             case "spawning":
                 return [makeSec("Spawning"), makeSpawns(), makeInfo(`Add a new spawn configuration to set what circles spawn for that number.`)];
+            case "miscellanous":
+                return [
+                    makeSec("Miscellanous"),
+                    makeField("Enable seed?", "checkbox", { code: "seedEnabled", dc: true }),
+                    makeField("Seed", "num", { min: -2147483648, max: 2147483647, step: 1, value: 100, width: 40, code: "seed" })
+                ]
             // Default: Properties.
             default:
                 return [
                     makeSec("Properties"),
                     makeField("Timed?", "checkbox", { code: "timed", dc: false }),
-                    makeField(menuState.timed ? "Time (seconds)" : "Moves", "num", { min: 1, max: Infinity, step: 1, value: 30, width: 20, code: "timemove" }),
+                    makeField(menuState.timed ? "Time (seconds)" : "Moves", "num", { min: 1, max: 65535, step: 1, value: 30, width: 20, code: "timemove" }),
                     makeField("Colo(u)rs", "num", { min: 1, max: 6, step: 1, value: 4, width: 13, code: "colours" }),
                     makeField("Include Black Circles", "checkbox", { code: "black", dc: false }),
                     makeSpecial("wh"),
@@ -812,9 +820,9 @@ function Menu(props) {
                         outlineStyled: ["black", "black", "white", "white", "white"], width: 56, code: "hard"
                     }),
 
-                    makeField(<><strong style={{ color: "#ff3333" }}>★ </strong>Target</>, "num", { min: 1, max: Infinity, step: 1, value: 10000, width: 50, code: "star1" }),
-                    makeField(<><strong style={{ color: "#22bb22" }}>★ </strong>Target</>, "num", { min: 1, max: Infinity, step: 1, value: 20000, width: 50, code: "star2" }),
-                    makeField(<><strong style={{ color: "#ffbb00" }}>★ </strong>Target</>, "num", { min: 1, max: Infinity, step: 1, value: 30000, width: 50, code: "star3" }),
+                    makeField(<><strong style={{ color: "#ff3333" }}>★ </strong>Target</>, "num", { min: 1, max: 4294967295, step: 1, value: 10000, width: 50, code: "star1" }),
+                    makeField(<><strong style={{ color: "#22bb22" }}>★ </strong>Target</>, "num", { min: 1, max: 4294967295, step: 1, value: 20000, width: 50, code: "star2" }),
+                    makeField(<><strong style={{ color: "#ffbb00" }}>★ </strong>Target</>, "num", { min: 1, max: 4294967295, step: 1, value: 30000, width: 50, code: "star3" }),
                     makeField("Increase colo(u)rs?", "checkbox", { code: "increaseColours", dc: false }),
                     makeField("Immediate showdown?", "checkbox", { code: "immediateShowdown", dc: true })
                 ]

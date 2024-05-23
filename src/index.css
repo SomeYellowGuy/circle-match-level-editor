@@ -46,7 +46,13 @@ option:checked {
 /* Levels */
 
 .Levels {
-	background-color: #66ccff;
+	background: repeating-linear-gradient(
+		45deg,
+		#66ccff,
+		#66ccff 100px,
+		#6ec7f3 100px,
+		#65c1ef 200px
+	);
 	width: 250px;
 	height: 60vh;
 	text-align: center;
@@ -121,7 +127,13 @@ option:checked {
 /* Palette */
 
 .PaletteDiv {
-	background-color: #768dff;
+	background: repeating-linear-gradient(
+		25deg,
+		#768dff,
+		#768dff 50px,
+		#6279e8 100px,
+		#425099 200px
+	);
 	height: 150px;
 	width: calc(100% - 250px);
 	font-size: 40px;
@@ -137,7 +149,13 @@ option:checked {
 
 .PaletteItems {
 	float: left;
-	background-color: #9cadff;
+	background: repeating-linear-gradient(
+		45deg,
+		#9cadff,
+		#9cadff 100px,
+		#9facf0 100px,
+		#93a5fe 200px
+	);
 	height: 130px;
 	padding: 0 0 0 14px;
 	width: 100%;
@@ -249,8 +267,14 @@ option:checked {
 /* Menu */
 
 .Menu {
-	background: #c3ff8a;
-	width: 260px;
+	background: repeating-linear-gradient(
+		45deg,
+		#c3ff8a,
+		#c3ff8a 100px,
+		#b1ed79 100px,
+		#b1ed79 200px
+	);
+	width: 270px;
 	height: calc(100vh - 150px);
 	text-align: center;
 	float: left;
@@ -402,7 +426,13 @@ option:checked {
 /* Tiles */
 
 .Tiles {
-	background-color: #ffcc66;
+	background: repeating-linear-gradient(
+		45deg,
+		#ffcc66,
+		#ffcc66 100px,
+		#edbc59 100px,
+		#f2c15f 200px
+	);
 	width: 250px;
 	height: 40vh;
 	text-align: center;
