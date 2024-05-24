@@ -301,7 +301,7 @@ function Board(props) {
                         }
                         if (k[0] == "S") k = "*S";
                         const d = getDimensions(k);
-                        const other_90_percents = ["G-", "*S", "PT", "B1", "B2", "B3", "J1", "J2", "J3", "J4"];
+                        const other_90_percents = ["G-", "*S", "PT", "I0", "B1", "B2", "B3", "J1", "J2", "J3", "J4"];
                         const is_90_percent = conflictingTiles[1].includes(tile) || other_90_percents.includes(tile) || tile[0] == "S";
                         const is_85_percent = tile[0] === "d";
                         let ds = (1 - (is_90_percent ? 0.9 : (is_85_percent ? 0.85 : 0.75))) * tileSize;

@@ -33,6 +33,8 @@ const names = {
     "d1": "1-Layered Donut",
     "d2": "2-Layered Donut",
     "d3": "3-Layered Donut",
+
+    "I0": "Ice",
     // Encasers
     "D1": "1-Layered Drain",
     "D2": "2-Layered Drain",
@@ -80,7 +82,6 @@ const names = {
     "S7": "Custom Spawn Point #7",
     "S8": "Custom Spawn Point #8",
     "S9": "Custom Spawn Point #9"
-
 }
 
 export default names;

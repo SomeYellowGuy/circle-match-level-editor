@@ -63,7 +63,11 @@ const tabTiles = {
         jawbreakers: {
             name: "Jawbreakers",
             tiles: ["J1", "J2", "J3", "J4"]
-        }
+        },
+        ice: {
+            name: "Ice",
+            tiles: ["I0"]
+        },
     },
     walls: {
         name: "Walls",

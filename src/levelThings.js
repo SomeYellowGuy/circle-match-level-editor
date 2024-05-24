@@ -78,6 +78,13 @@ const levelThings = {
     },
 
     /**
+     * Tells if a tile is ice.
+     */
+    isIce (tile) {
+        return tile == "I0";
+    },
+
+    /**
      * Tells if a tile is a watermelon.
      */
     isWatermelon (tile) {
