@@ -6,7 +6,7 @@ const levelThings = {
     `Score,Button,Globe,Paint,
     Red Circle,Orange Circle,Yellow Circle,Green Circle,Blue Circle,Purple Circle,Black Circle,
     Striped Circle,Radial Circle,Rainbow Circle,
-    Metal Ball (L),Watermelon (L),Donut (L),Jawbreaker`.split(","),
+    Metal Ball (L),Watermelon (L),Donut (L),Jawbreaker,Ice`.split(","),
 
     /**
      * Goals that are NOT requirements and cannot be used as a requirement.
