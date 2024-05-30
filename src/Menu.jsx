@@ -261,14 +261,12 @@ function Menu(props) {
         let g = [...goals];
         if (c) g[n][attrib] = !g[n][attrib];
         g[n][attrib] = typeof to !== "number" ? to : Number(to);
-        const optionalAmount = ["button", "paint"];
-        const noAmount = ["score"];
         if (attrib === "type") {
-            g[n].optional = optionalAmount.includes(to.toLowerCase());
+            g[n].optional = levelThings.optionalGoalNumber.includes(to.toLowerCase());
             g[n].option = false;
-            if (noAmount.includes(to.toLowerCase())) g[n].amount = null;
+            if (levelThings.noGoalNumber.includes(to.toLowerCase())) g[n].amount = null;
             if (!g[n].amount && g[n].optional) g[n].amount = 3;
-            else if (!optionalAmount.includes(to.toLowerCase()) && !g[n].amount) g[n].amount = 3;
+            else if (!levelThings.optionalGoalNumber.includes(to.toLowerCase()) && !levelThings.noGoalNumber.includes(to.toLowerCase()) && !g[n].amount) g[n].amount = 3;
         }
         setGoals(g);
         props.sg(g);
@@ -284,12 +282,14 @@ function Menu(props) {
     }
 
     function getC(t) {
-        t = t.toLowerCase();
-        if (t === "score") return "#ff9999";
-        if (t === "button") return "#99ddff";
-        if (t === "globe") return "#99ffcc";
-        if (t === "paint") return "#f3e830";
-        return "#ff77ff";
+        switch (t.toLowerCase()) {
+            case "score": return "#ff9999";
+            case "button": return "#99ddff";
+            case "globe": return "#99ffcc";
+            case "paint": return "#f3e830";
+            case "ice": return "#cffff5";
+            default: return "#ff77ff"; // order
+        }
     }
 
     function makeTeleporters() {

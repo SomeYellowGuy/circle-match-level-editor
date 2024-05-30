@@ -3,10 +3,16 @@ const levelThings = {
      * All possible goal types of a level.
      */
     goals:
-    `Score,Button,Globe,Paint,
+    `Score,Button,Globe,Paint,Ice,
     Red Circle,Orange Circle,Yellow Circle,Green Circle,Blue Circle,Purple Circle,Black Circle,
     Striped Circle,Radial Circle,Rainbow Circle,
-    Metal Ball (L),Watermelon (L),Donut (L),Jawbreaker,Ice`.split(","),
+    Metal Ball (L),Watermelon (L),Donut (L),Jawbreaker,Candy Beads`.split(","),
+
+    noGoalNumber:
+    `score`.split(","),
+
+    optionalGoalNumber:
+    `button,paint,ice`.split(","),
 
     /**
      * Goals that are NOT requirements and cannot be used as a requirement.
@@ -52,7 +58,7 @@ const levelThings = {
     `Properties,Goals,Cannons,Teleporters,Camera,Spawning,Miscellanous,???`.split(","),
 
     /**
-     * Tels all colors.
+     * Tells all colors.
      */
     colors:
     `Red,Yellow,Blue,Green,Orange,Purple,Black`.split(","),

@@ -107,12 +107,22 @@ function Levels(props) {
             if (!i.type) return false;
             let g = {};
             g.type = i.type.replace(/_/g, ' ').split(" ").map(o=>o[0].toUpperCase()+o.slice(1)).join(" ");
-            if (i.type === "metal_ball") g.type = "Metal Ball (L)";
-            if (i.type === "watermelon") g.type = "Watermelon (L)";
-            if (i.type === "donut") g.type = "Donut (L)";
-            if (i.type === "button" || i.type === "paint") g.optional = true;
+            switch (i.type) {
+                case "metal_ball":
+                    g.type = "Metal Ball (L)";
+                    break;
+                case "watermelon":
+                    g.type = "Watermelon (L)";
+                    break;
+                case "donut":
+                    g.type = "Donut (L)"
+                    break;
+                case "button":
+                case "paint":
+                    g.optional = true;
+            }
             g.option = !!(!!g.optional && !!i.amount)
-            if (i.type !== "score") g.amount = i.amount || 3
+            if (!levelThings.noGoalNumber.includes(i.type)) g.amount = i.amount || 3
             go.push(g)
         }
         let editorTiles = [];

@@ -4,6 +4,7 @@ const tooltips = {
         "button": "Collect all buttons, or a specific amount of them!",
         "globe": "Collect globes!",
         "paint": "Spread paint to all tiles, or to a specific extent!",
+        "ice": "Clear all ice on the board, or a certain amount of it!",
         // Orders
         "red circle": "Collect red circles!",
         "orange circle": "Collect orange circles!",
