@@ -23,7 +23,12 @@ function App() {
 	const [ts, setTS] = useState(null);
 	const [lns, setLNS] = useState([]);
 	const [dir, setDir] = useState(null);
+	// Currently selected teleporter.
 	const [sct, setsct] = useState(0);
+	// Currently selected path (gravitation).
+	const [scp, setscp] = useState(0);
+	// Currently selected point of currently selected path (gravitation).
+	const [scpp, setscpp] = useState(1);
 	const [menuCurrentTab, setmct] = useState("properties");
 	const [cameraData, setCameraData] = useState({
 		enabled: false,
@@ -49,8 +54,12 @@ function App() {
         increaseColours: false,
 		black: false,
         immediateShowdown: true,
-		preferredColours: { enabled: false }
+		preferredColours: { enabled: false, paths: [] }
     });
+	const [gravitationData, setGravitationData] = useState({
+		custom: false,
+		paths: []
+	})
 
 	return (
 		<>
@@ -66,6 +75,8 @@ function App() {
 				lns={lns} slns={setLNS} sc={setC} c={c}
 				cd={cameraData} setcd={setCameraData}
 				spd={spawnData} setspd={setSpawnData}
+				gd={gravitationData} setgd={setGravitationData}
+				scp={scp} setscp={setscp} scpp={scpp} setscpp={setscpp}
 			/>
 			<div className={"BoardDiv"} style={{
 				overflow: level > 0 ? "scroll" : "auto"
@@ -73,11 +84,14 @@ function App() {
 			<Board 
 				mct={menuCurrentTab}
 				sct={sct} setsct={setsct}
+				scp={scp}
+				scpp={scpp} setscpp={setscpp}
 				s={selected} m={menuS} l={level}
 				st={setTiles} t={tiles} 
 				teles={teles} steles={setTeles} 
 				ts={ts} sts={setTS}
 				cd={cameraData} setcd={setCameraData}
+				gd={gravitationData} setgd={setGravitationData}
 				/></div>
 			</>
 			<>
@@ -90,6 +104,7 @@ function App() {
 					sc={setC}
 					cd={cameraData} setcd={setCameraData}
 					setspd={setSpawnData} spd={spawnData}
+					gd={gravitationData} setgd={setGravitationData}
 				/>
 				<Tiles
 					ts={ts} t={tiles} st={setTiles}

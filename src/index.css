@@ -43,6 +43,10 @@ option:checked {
 	background-color: white;
 }
 
+button:disabled {
+	background-color: rgba(58, 103, 41, 0.33) !important;
+}
+
 /* Levels */
 
 .Levels {
@@ -406,6 +410,14 @@ option:checked {
 .MenuInfoSmall {
 	background-color: rgba(0,0,0,0.15);
 	margin-top: 20px !important;
+	border-radius: 9px;
+	width: 90%;
+	margin: 0 auto
+}
+
+.MenuInfoBig {
+	background-color: rgba(0,0,0,0.15);
+	margin-top: 80px !important;
 	border-radius: 9px;
 	width: 90%;
 	margin: 0 auto

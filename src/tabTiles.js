@@ -34,7 +34,7 @@ const tabTiles = {
         },
         specials: {
             name: "Special Circles",
-            tiles: ["*-","*|","*O","*/","*+"]
+            tiles: ["*-","*|","*O","*/","*+","*K"]
         }
 
     },
@@ -93,6 +93,10 @@ const tabTiles = {
         customSpawns: {
             name: "Custom Spawn Points",
             tiles: ["S1", "S2", "S3", "S4", "S5", "S6", "S7", "S8", "S9"]
+        },
+        circleChests: {
+            name: "Circle Chests",
+            tiles: ["c1","c2","c3","c4","c5"]
         }
     },
     all: {
@@ -114,7 +118,7 @@ const tabTiles = {
         },
         circle: {
             name: "Circle Cannons",
-            tiles: ["C-", "C|", "CO", "C+"]
+            tiles: ["C-", "C|", "CO", "C+", "CK"]
         }
     }
 }

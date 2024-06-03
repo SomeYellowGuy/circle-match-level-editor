@@ -19,7 +19,7 @@ function Menu(props) {
         immediateShowdown: true,
         camera: { enabled: false },
         cannons: [],
-        preferredColours: { enabled: false }
+        preferredColours: { custom: false }
     });
 
     const [cameraData, setCameraData] = useState({
@@ -32,6 +32,8 @@ function Menu(props) {
     })
 
     const [spawnData, setSpawnData] = useState([]);
+
+    const [gravitationData, setGravitationData] = useState({ custom: false, paths: [] });
 
     let [R, setR] = useState(0)
 
@@ -109,13 +111,13 @@ function Menu(props) {
         </div>
     }
 
-    function makeInfo(info, isSmall) {
+    function makeInfo(info, isSmall, isBig) {
         let list = [];
         let i = 0;
         for (const line of info.split("\n")) {
             list.push(<li key={i++}>{line}</li>);
         }
-        return (<div className={isSmall ? "MenuInfoSmall" : "MenuInfo"}>
+        return (<div className={isBig ? "MenuInfoBig" : (isSmall ? "MenuInfoSmall" : "MenuInfo")}>
             <ul>{list}</ul>
         </div>);
     }
@@ -220,6 +222,26 @@ function Menu(props) {
         props.steles(oldTeles);
     }
 
+    function addPath() {
+        // Create a path.
+        let oldPaths = [...gravitationData.paths];
+        oldPaths.push([[0, 0], [0, Math.min(menuState.height-1, 8)]]);
+        props.setscp(String(Number(oldPaths.length)));
+        let newPaths = {custom: gravitationData.custom, paths: oldPaths};
+        setGravitationData(newPaths);
+        props.setgd(newPaths);
+        props.setscpp(1);
+    }
+
+    function removePath(i) {
+        // Remove the path.
+        let oldPaths = [...gravitationData.paths];
+        oldPaths.splice(i, 1);
+        let newPaths = {custom: gravitationData.custom, paths: oldPaths};
+        setGravitationData(newPaths)
+        props.setgd(newPaths);
+    }
+
     function addCannonData() {
         // Create cannon data.
         let c = [...cannons];
@@ -294,7 +316,7 @@ function Menu(props) {
 
     function makeTeleporters() {
         let items = [];
-        // Make an Add Goal button.
+        // Make an Add button.
         items.push(<button id="MenuGoalAdd" onClick={addTele} key={0}>
             Add Teleporters
         </button>)
@@ -447,8 +469,9 @@ function Menu(props) {
         props.setmct(currentTab);
         setCameraData(props.cd);
         setSpawnData(props.spd);
+        setGravitationData(props.gd);
         return () => { };
-    }, [props.l, props.cd, props.spd, menuState, currentTab, props.m, props.g, props.teles, props.c]);
+    }, [props.l, props.cd, props.spd, menuState, currentTab, props.m, props.g, props.teles, props.c, props.gd]);
 
     function saveLevel() {
         // Make basic metadata.
@@ -554,6 +577,10 @@ function Menu(props) {
             }
         }
         data.preferredColours = number;
+        // Gravitation!
+        if (gravitationData.custom) {
+            data.gravitationPaths = gravitationData.paths;
+        }
         // Allow the user to save!
         window.API.fileSystem.saveLevel(props.l, props.dir, data).then(() => {})
         if (!props.lns.some(o => o[0] === props.l)) {
@@ -720,6 +747,63 @@ function Menu(props) {
         }
     }
 
+    function changeGravitationAttribute(key, value) {
+        let d = structuredClone(gravitationData);
+        d[key] = value;
+        setGravitationData(d);
+        props.setgd(d);
+    }
+
+    function makeGravitations() {
+        let items = [];
+
+        items.push(<div style={{height: "6%"}}>
+        <label htmlFor="input" key={-1} className={"MenuAreaLabel"} style={{top: "50%",  marginTop: "3%"}}>Custom?<input type="checkbox"
+            className={"MenuAreaField"} onChange={(e) => changeGravitationAttribute("custom", e.target.checked)}
+            checked={gravitationData.custom} style={{
+                width: "40%",
+            }} /></label>
+        </div>);
+
+        let disabled = !gravitationData.custom;
+
+        // Make an Add button.
+        items.push(<button id="MenuGoalAdd" onClick={addPath} key={0} disabled={disabled}>
+        Add Path
+        </button>)
+        items.push(<button id="MenuGoalAdd" onClick={() => {
+            removePath(props.scp - 1)
+        }} key={1} disabled={disabled}>
+            Delete Selected Path
+        </button>)
+
+        items.push(<div>
+            <label htmlFor="quantity" key={3} className={"MenuAreaLabel"}>Selected ID
+                <input type="number" disabled={disabled}
+                    className={"MenuTele"} onChange={(e) => {
+                        props.setscp(e.target.value);
+                    }}
+                    min={0} max={gravitationData.paths.length} step={1} value={props.scp} style={{
+                        width: "80%"
+                    }} />                               
+            </label>
+        </div>);
+
+        items.push(<div>
+            <label htmlFor="quantity" key={4} className={"MenuAreaLabel"}>Selected Point #
+                <input type="number" disabled={disabled}
+                    className={"MenuTele"} onChange={(e) => {
+                        props.setscpp(e.target.value);
+                    }}
+                    min={0} max={255} step={1} value={props.scpp} style={{
+                        width: "80%"
+                    }} />                               
+            </label>
+        </div>);
+
+        return items;
+    }
+
     function makeSpawns() {
         let items = [];
         // Preferred Colors
@@ -805,7 +889,17 @@ function Menu(props) {
                     makeSec("Miscellanous"),
                     makeField("Enable seed?", "checkbox", { code: "seedEnabled", dc: true }),
                     makeField("Seed", "num", { min: -2147483648, max: 2147483647, step: 1, value: 100, width: 40, code: "seed" })
-                ]
+                ];
+            case "gravitation":
+                return [
+                    makeSec("Gravitation"),
+                    makeGravitations(),
+                    makeInfo(
+                    `On this tab, for the selected path, perform these to:
+                    Left click: place a new point
+                    Right click: change the position of a selected point`  
+                    , false, true)
+                ];
             // Default: Properties.
             default:
                 return [

@@ -11,7 +11,9 @@ let c = [
     ],
     // Encasing blockers
     ["D1", "D2",
-     "b1", "b2", "b3"],
+     "b1", "b2", "b3",
+     "c1", "c2", "c3", "c4", "c5"
+    ],
     // Buttons
     ["B1", "B2", "B3"],
     // Paint
@@ -25,6 +27,6 @@ let c = [
     ["E>"]
 ]
 
-c.push(c[0].slice(8).concat(["*O","*-","*|","*+","**"]))
+c.push(c[0].slice(8).concat(levelThings.fixable))
 
 export default c;

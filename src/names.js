@@ -13,6 +13,7 @@ const names = {
     "*O": "Radial Circle",
     "*+": "Extra Time Circle",
     "*/": "Rainbow Circle",
+    "*K": "Key",
     // Blockers
     "M1": "1-Layered Metal Ball",
     "M2": "2-Layered Metal Ball",
@@ -25,10 +26,10 @@ const names = {
     "W2": "2-Layered Watermelon",
     "W3": "3-Layered Watermelon",
 
-    "J1": "1-layered Jawbreaker (Gum)",
-    "J2": "2-layered Jawbreaker",
-    "J3": "3-layered Jawbreaker",
-    "J4": "4-layered Jawbreaker",
+    "J1": "1-Layered Jawbreaker (Gum)",
+    "J2": "2-Layered Jawbreaker",
+    "J3": "3-Layered Jawbreaker",
+    "J4": "4-Layered Jawbreaker",
 
     "d1": "1-Layered Donut",
     "d2": "2-Layered Donut",
@@ -56,6 +57,11 @@ const names = {
     "G-": "Globe Exit",
     "PT": "Paint Tile",
     "cp": "Camera",
+    "c1": "1-Layered Circle Chest",
+    "c2": "2-Layered Circle Chest",
+    "c3": "3-Layered Circle Chest",
+    "c4": "4-Layered Circle Chest",
+    "c5": "5-Layered Circle Chest",
     // Cannons
     "CW": "Watermelon Cannon",
     "Cd": "Donut Cannon",
@@ -65,6 +71,7 @@ const names = {
     "C|": "Vertical Striped Circle Cannon",
     "CO": "Radial Circle Cannon",
     "C+": "Extra Time Circle Cannon",
+    "CK": "Key Cannon",
     /// Walls
     "-W": "Remove all Wall Tiles",
     // Beads

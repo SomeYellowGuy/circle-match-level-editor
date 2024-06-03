@@ -54,6 +54,34 @@ function Board(props) {
         props.steles(g);
     }
 
+    function isStraight(p1, p2) {
+        if (!p1 || !p2) return true;
+        return p1[0] == p2[0] || p1[1] == p2[1]
+    }
+
+    function changePointOfPath(path, point, newPosition) {
+        let d = structuredClone(props.gd);
+        let o = d.paths;
+        if (o.length <= path || o[path].length <= point-1 || point < 1 || o.length < 1) return;
+        // Check if the new position is strictly vertically or horizontally distant.
+        if (point > 0 && !isStraight(o[path][point-2], newPosition)) return;
+        o[path][point-1] = newPosition;
+        props.setgd({ custom: d.custom, paths: o });
+        props.setscpp(props.scpp + 1);
+    }
+
+    function addPointToPath(path, position) {
+        let d = structuredClone(props.gd);
+        let o = d.paths;
+        if (o.length <= path) return;
+        const len = o[path].length;
+        // Check if the new position is strictly vertically or horizontally distant.
+        if (len >= 1 && !isStraight(position, o[path][len-1])) return;
+        o[path].push(position);
+        props.setgd({ custom: d.custom, paths: o });
+        props.setscpp(props.scpp + 1);
+    }
+
     function handleClick(e) {
         const ctx = canvas?.getContext("2d");
         if (!ctx) return;
@@ -85,6 +113,15 @@ function Board(props) {
                         changeTeleAttribute(props.sct - 1, "to1", tileY + 1);
                         break;
                 }
+            } else if (props.scp > 0 && props.mct === "gravitation" && props.gd.custom) {
+                switch (e.button) {
+                    case 0:
+                        // Left click (add a new point)
+                        addPointToPath(props.scp - 1, [tileX, tileY]);
+                    case 2:
+                        // Right click (change a point's position)
+                        changePointOfPath(props.scp - 1, props.scpp, [tileX, tileY])
+                }
             } else if (props.s) {
                 // For a normal tile.
                 switch (e.button) {
@@ -92,8 +129,8 @@ function Board(props) {
                         const cannonTiles = oldTiles[tileY][tileX].filter(t => t && t[0] === "C");
                         const others = oldTiles[tileY][tileX].filter(t => t && t[0] !== "C");
                         // Left button
-                        var u = false; // Should add cannon tiles?
-                        var uOverride = false;
+                        let u = false; // Should add cannon tiles?
+                        let uOverride = false;
                         if (props.s === "*s") return;
                         if (props.s === "--") {
                             // Delete any camera on that tile.
@@ -236,6 +273,7 @@ function Board(props) {
         ctx.fillStyle = "#5599ff";
         ctx.fillRect(0, 0, tileSize * MAX_WIDTH, tileSize * MAX_HEIGHT);
         ctx.strokeStyle = "rgba(0,0,0,0.5)";
+        ctx.lineWidth = 1.0;
         for (let y = 1; y < MAX_HEIGHT + 1; y++) {
             ctx.beginPath();
             ctx.moveTo(0, y * tileSize);
@@ -290,19 +328,19 @@ function Board(props) {
                     for (let i = 0; i < tiles[y][x].length; i++) {
                         let tile = tiles[y][x][i];
                         let k = tile;
-                        if (tiles[y][x].some(o => "*0,*1,*2,*3,*4,*5,*B".split(",").includes(o))) {
+                        if (tiles[y][x].some(o => levelThings.colorTiles.includes(o))) {
                             // +Special?
-                            if (tiles[y][x].some(o => "*-,*|,*O,*+".split(",").includes(o))) {
+                            if (tiles[y][x].some(o => levelThings.fixableSpecials.includes(o))) {
                                 if (tile[0] === "*" && !["*/", "*S"].concat(levelThings.customSpawns).includes(tile)) {
-                                    k = tiles[y][x].filter(o => "*0,*1,*2,*3,*4,*5,*B".split(",").includes(o))[0] +
-                                        tiles[y][x].filter(o => "*-,*|,*O,*+".split(",").includes(o))[0]
+                                    k = tiles[y][x].filter(o => levelThings.colorTiles.includes(o))[0] +
+                                        tiles[y][x].filter(o => levelThings.fixableSpecials.includes(o))[0]
                                 }
                             }
                         }
                         if (k[0] == "S") k = "*S";
                         const d = getDimensions(k);
                         const other_90_percents = ["G-", "*S", "PT", "I0", "B1", "B2", "B3", "J1", "J2", "J3", "J4"];
-                        const is_90_percent = conflictingTiles[1].includes(tile) || other_90_percents.includes(tile) || tile[0] == "S";
+                        const is_90_percent = conflictingTiles[1].includes(tile) || other_90_percents.includes(tile) || tile[0] == "S" || levelThings.isKey(k) || levelThings.isCircleChest(tile);
                         const is_85_percent = tile[0] === "d";
                         let ds = (1 - (is_90_percent ? 0.9 : (is_85_percent ? 0.85 : 0.75))) * tileSize;
                         if (tile[0] == "S") {
@@ -311,9 +349,9 @@ function Board(props) {
                             ctx.strokeStyle = "rgba(255,255,255,0.9)";
                             ctx.font = "20px Segoe UI";
                             ctx.textAlign = "center";
-                            ctx.fillText(tile[1], (x + 0.15) * tileSize + ds / 2, (y + 0.15) * tileSize + ds / 2);
+                            fillText(ctx, tile[1], (x + 0.15) * tileSize + ds / 2, (y + 0.15) * tileSize + ds / 2, tile, x, y);
                             ctx.font = "23px Segoe UI";
-                            ctx.strokeText(tile[1], (x + 0.15) * tileSize + ds / 2, (y + 0.15) * tileSize + ds / 2);
+                            strokeText(ctx, tile[1], (x + 0.15) * tileSize + ds / 2, (y + 0.15) * tileSize + ds / 2, tile, x, y);
                         }
                         const s = tileSize;
                         if (tile === "G2") ds = 0.1 * tileSize;
@@ -323,7 +361,7 @@ function Board(props) {
                         const offset = levelThings.getOffsetOf(tile);
 
                         if (tile !== "--" && tile !== "-O" && tile[0] !== "C")
-                        ctx.drawImage(src, d.x, d.y, d.w, d.h, x * tileSize + ds / 2 + offset[0], y * tileSize + ds / 2 + offset[1], s - ds, s - ds)
+                        drawImage(ctx, src, d.x, d.y, d.w, d.h, x * tileSize + ds / 2 + offset[0], y * tileSize + ds / 2 + offset[1], s - ds, s - ds, x, y, tile)
                         let c = 0;
                         ctx.fillStyle = "rgba(0,0,0,0.1)";
                         if (tiles[y][x].some(o => o[0] === "C")) ctx.fillRect(x * tileSize, y * tileSize, tileSize, 0.3 * tileSize);
@@ -331,10 +369,10 @@ function Board(props) {
                             const d = getDimensions("??" + cannon)
                             const ds = 0.75 * tileSize;
                             const l = tiles[y][x].filter(o => o[0] === "C").length + 1
-                            ctx.drawImage(src, d.x, d.y, d.w, d.h,
+                            drawImage(ctx, src, d.x, d.y, d.w, d.h,
                                 (x + 0.4) * tileSize + ds / 2 - (c * tileSize / l) - 5,
                                 (y - 0.35) * tileSize + ds / 2 + offset[1],
-                            s - ds, s - ds);
+                            s - ds, s - ds, x, y, tile);
                             c++;
                         }
                         ctx.fillStyle = "rgba(255,255,255,0.15)";
@@ -343,6 +381,7 @@ function Board(props) {
                 }
                 let t;
                 const s = tileSize;
+                const rotation = dirOfPosition([x, y]);
                 const validEntryTeleporters = props.teles.filter(o => o.from[0] === x + 1 && o.from[1] === y + 1);
                 if (validEntryTeleporters.length > 0) {
                     let first = validEntryTeleporters[0];
@@ -350,12 +389,14 @@ function Board(props) {
                     // Teleporter Entry
                     t = getDimensions("?1");
                     let ds = 0.1 * tileSize;
-                    ctx.drawImage(src, t.x, t.y, t.w, t.h, x * tileSize + ds / 2, y * tileSize + ds / 2, s - ds, s - ds);
+                    drawImage(ctx, src, t.x, t.y, t.w, t.h, x * tileSize + ds / 2, y * tileSize + ds / 2, s - ds, s - ds, x, y, "?1");
 
                     ctx.fillStyle = "rgba(0,0,0,0.7)";
                     ctx.font = "15px Segoe UI";
                     ctx.textAlign = "center";
-                    ctx.fillText(num.filter(n => n != null)[0] + 1 , (x + 0.45) * tileSize + ds / 2, (y + 0.9) * tileSize + ds / 2);
+                    ctx.strokeStyle = "rgba(4,4,4,0.5)";
+                    fillText(ctx, num.filter(n => n != null)[0] + 1 , (x + 0.45) * tileSize + ds / 2, (y + 0.9) * tileSize + ds / 2, "?1", x, y, true);
+                    strokeText(ctx, num.filter(n => n != null)[0] + 1 , (x + 0.45) * tileSize + ds / 2, (y + 0.9) * tileSize + ds / 2, "?1", x, y, true);
                 }
                 const validExitTeleporters = props.teles.filter(o => o.to[0] === x + 1 && o.to[1] === y + 1);
                 if (validExitTeleporters.length > 0) {
@@ -364,12 +405,14 @@ function Board(props) {
                     // Teleporter Exit
                     t = getDimensions("?2");
                     let ds = 0.1 * tileSize;
-                    ctx.drawImage(src, t.x, t.y, t.w, t.h, x * tileSize + ds / 2, y * tileSize + ds / 2, s - ds, s - ds)
+                    drawImage(ctx, src, t.x, t.y, t.w, t.h, x * tileSize + ds / 2, y * tileSize + ds / 2, s - ds, s - ds, x, y, "?2")
 
                     ctx.fillStyle = "rgba(0,0,0,0.7)";
                     ctx.font = "15px Segoe UI";
                     ctx.textAlign = "center";
-                    ctx.fillText(num.filter(n => n != null)[0] + 1, (x + 0.45) * tileSize + ds / 2, (y + 0.1) * tileSize + ds / 2);
+                    ctx.strokeStyle = "rgba(4,4,4,0.5)";
+                    fillText(ctx, num.filter(n => n != null)[0] + 1, (x + 0.45) * tileSize + ds / 2, (y + 0.1) * tileSize + ds / 2, "?2", x, y, true);
+                    strokeText(ctx, num.filter(n => n != null)[0] + 1, (x + 0.45) * tileSize + ds / 2, (y + 0.1) * tileSize + ds / 2, "?2", x, y, true);
                 }
                 const validCameras = props.cd.cameras.filter(o => o[0] === x && o[1] === y);
                 if (validCameras.length > 0) {
@@ -378,20 +421,172 @@ function Board(props) {
                     // Camera
                     t = getDimensions("cp");
                     let ds = 0.1 * tileSize;
-                    ctx.drawImage(src, t.x, t.y, t.w, t.h, x * tileSize + ds / 2, y * tileSize + ds / 2, s - ds, s - ds)
+                    drawImage(ctx, src, t.x, t.y, t.w, t.h, x * tileSize + ds / 2, y * tileSize + ds / 2, s - ds, s - ds, x, y, "cp")
 
                     ctx.fillStyle = "rgba(0,0,0,0.5)";
                     ctx.font = "23px Segoe UI";
                     ctx.textAlign = "center";
-                    ctx.fillText(num.filter(n => n != null)[0] + 1, (x + 0.32) * tileSize + ds / 2, (y + 0.55) * tileSize + ds / 2);
+                    fillText(ctx, num.filter(n => n != null)[0] + 1, (x + 0.32) * tileSize + ds / 2, (y + 0.55) * tileSize + ds / 2, "cp");
+                }
+            }
+        }
+
+        if (props.gd.custom) {
+            let pathN = -1;
+            const transparencyMultiplier = props.mct === "gravitation" ? 1.0 : 0.3;
+            for (const path of props.gd.paths) {
+                let i = 0;
+                pathN++;
+                if (path.length === 0) continue;
+                // Each path has multiple points.
+                ctx.lineWidth = 15;
+                ctx.lineCap = "round";
+                const hue = pathN * 18;
+                for (const point of path.slice(1)) {
+                    ctx.beginPath();
+                    let last = path[i];
+                    ctx.moveTo((last[0]+0.5) * tileSize, (last[1]+0.5) * tileSize);
+                    let gradient = ctx.createLinearGradient((last[0]+0.5) * tileSize, (last[1]+0.5) * tileSize, (point[0]+0.5) * tileSize, (point[1]+0.5) * tileSize);
+                    gradient.addColorStop(0, "hsla("+hue+"deg, 70%, 100%, "+(40*transparencyMultiplier)+"%)");
+                    gradient.addColorStop(1, "hsla("+hue+"deg, 70%, 3%, "+(40*transparencyMultiplier)+"%)");
+                    ctx.strokeStyle = gradient;
+                    i++;
+                    ctx.lineTo((point[0]+0.5) * tileSize, (point[1]+0.5) * tileSize);
+                    ctx.stroke();
+                }
+            }
+            const offset = [0, 7]
+            for (const path of props.gd.paths) {
+                let i = 0;
+                for (const point of path) {
+                    ctx.fillStyle = "rgba(10,10,10,"+(80*transparencyMultiplier)+"%)";
+                    ctx.strokeStyle = "rgba(255,255,255,"+(80*transparencyMultiplier)+"%)";
+                    ctx.lineWidth = 6;
+                    ctx.font = "24px Segoe UI";
+                    ctx.textAlign = "center";
+                    strokeText(ctx, i+1, (point[0]+0.5) * tileSize + offset[0], (point[1]+0.5) * tileSize + offset[1]);
+                    fillText(ctx, i+1, (point[0]+0.5) * tileSize + offset[0], (point[1]+0.5) * tileSize + offset[1]);
+                    i++;
                 }
             }
         }
     }
 
+    function isBetween(middle, from, to) {
+        // If the points are not on a straight line, it is not between.
+        if (!isStraight(from, middle) || !isStraight(middle, to)) return false;
+        // If the middle is exactly at from or to, return true.
+        if (from[0] === middle[0] && from[1] === middle[1]) return true;
+        if (to[0] === middle[0] && to[1] === middle[1]) return true;
+        // Between cases!
+        if (from[0] > middle[0] && middle[0] > to[0]) return true;
+        if (from[0] < middle[0] && middle[0] < to[0]) return true;
+        if (from[1] > middle[1] && middle[1] > to[1]) return true;
+        if (from[1] < middle[1] && middle[1] < to[1]) return true;
+        // ...
+        return false;
+    }
+
+    function dirOfPosition(pos, degrees) {
+        if (props.gd.paths.length == 0 || !props.gd.custom) return 0;
+        for (const path of props.gd.paths) {
+            let i = 0;
+            for (const point of path.slice(1)) {
+                const last = path[i++];
+                if (!isBetween(pos, last, point)) continue;
+                const delta = [point[0] - last[0], point[1] - last[1]];
+                if (delta[0] > 0) {
+                    // Right!
+                    return !degrees ? -Math.PI/2 : -90;
+                } else if (delta[0] < 0) {
+                    // Left!
+                    return !degrees ? Math.PI/2 : 90;
+                } else if (delta[1] > 0) {
+                    // Down!
+                    return 0;
+                } else if (delta[1] < 0) {
+                    // Up!
+                    return !degrees ? Math.PI : 180;
+                }
+            }
+        }
+        return 0;
+    }
+
+    function drawImage(ctx, src, x, y, w, h, a, b, c, d, tileX, tileY, tile) {
+        const dir = dirOfPosition([tileX, tileY]);
+        if (levelThings.rotatesWithGravitation.includes(tile) && props.gd.paths.length > 0 && dir !== 0) {
+            // Rotate the drawn image based on gravity.
+            ctx.translate(a + c/2, b + d/2);
+            ctx.rotate(dir)
+            ctx.drawImage(src, x, y, w, h, -c/2, -d/2, c, d);
+            ctx.setTransform(1, 0, 0, 1, 0, 0);
+        } else {
+            ctx.drawImage(src, x, y, w, h, a, b, c, d)
+        }
+    }
+
+    function fillText(ctx, text, x, y, tile, tileX, tileY) {
+        const dir = levelThings.rotatesWithGravitation.includes(tile) ? dirOfPosition([tileX, tileY], true) : 0;
+        if (dir === 0) {
+            ctx.textBaseline = "alphabetic";
+            ctx.fillText(text, x, y);
+        } else {
+            ctx.textBaseline = "middle";
+            const center = [(tileX + 0.5) * TILE_SIZE, (tileY + 0.5) * TILE_SIZE];
+            const offset = [x - center[0], y - center[1]];
+            let newOffset;
+            switch (dir) {
+                case 90:
+                    newOffset = [-offset[1], -offset[0]];
+                    break;
+                case 180:
+                    newOffset = [-offset[0], -offset[1]];
+                    break;
+                case -90:
+                    newOffset = [offset[1], offset[0]];
+                    break;
+                case 0:
+                default:
+                    newOffset = offset;
+                    break;
+            }
+            ctx.fillText(text, center[0] + newOffset[0] - 4, center[1] + newOffset[1]);
+        }
+    }
+
+    function strokeText(ctx, text, x, y, tile, tileX, tileY, leftOffset) {
+        const dir = levelThings.rotatesWithGravitation.includes(tile) ? dirOfPosition([tileX, tileY], true) : 0;
+        if (dir === 0) {
+            ctx.textBaseline = "alphabetic";
+            ctx.strokeText(text, x, y);
+        } else {
+            ctx.textBaseline = "middle";
+            const center = [(tileX + 0.5) * TILE_SIZE, (tileY + 0.5) * TILE_SIZE];
+            const offset = [x - center[0], y - center[1]];
+            let newOffset;
+            switch (dir) {
+                case 90:
+                    newOffset = [-offset[1], -offset[0]];
+                    break;
+                case 180:
+                    newOffset = [-offset[0], -offset[1]];
+                    break;
+                case -90:
+                    newOffset = [offset[1], offset[0]];
+                    break;
+                case 0:
+                default:
+                    newOffset = offset;
+                    break;
+            }
+            ctx.strokeText(text, center[0] + newOffset[0] - (leftOffset ? 4 : 0), center[1] + newOffset[1]);
+        }
+    }
+
     useEffect(() => {
         updateTiles(props.t);
-    }, [props.m, props.l, props.t, props.ts, props.teles, props.cd]);
+    }, [props.m, props.l, props.t, props.ts, props.teles, props.cd, props.gd, props.mct]);
 
     return (
         <canvas
