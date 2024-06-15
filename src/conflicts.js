@@ -24,7 +24,9 @@ let c = [
     ["E^"],
     ["Ev"],
     ["E<"],
-    ["E>"]
+    ["E>"],
+    // Plastic Capsules
+    ["p1", "p2"]
 ]
 
 c.push(c[0].slice(8).concat(levelThings.fixable))

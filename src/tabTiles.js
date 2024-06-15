@@ -68,6 +68,10 @@ const tabTiles = {
             name: "Ice",
             tiles: ["I0"]
         },
+        plasticCapsules: {
+            name: "Plastic Capsules",
+            tiles: ["p1", "p2"]
+        }
     },
     walls: {
         name: "Walls",

@@ -220,6 +220,7 @@ function Board(props) {
                 let bTiles = []; // Buttons
                 let pTiles = []; // Paint
                 let mTiles = []; // Anything else (usually normal tiles like circles)
+                let cTiles = []; // Capsules
                 let eTiles = []; // Encasing blockers
                 let tTiles = []; // Tile markers
                 // Order (shown above the rest ------> shown behind the rest)
@@ -228,11 +229,12 @@ function Board(props) {
                     let tile = oldTiles[tileY][tileX][i];
                     if (tile[0] === "B") bTiles.push(tile);
                     else if (tile === "PT") pTiles.push(tile);
-                    else if (conflictingTiles[1].includes(tile)) eTiles.push(tile);
-                    else if (levelThings.tileMarkers.includes(tile)) tTiles.push(tile)
+                    else if (levelThings.isPlasticCapsule(tile)) cTiles.push(tile);
+                    else if (levelThings.encases(tile)) eTiles.push(tile);
+                    else if (levelThings.tileMarkers.includes(tile)) tTiles.push(tile);
                     else mTiles.push(tile);
                 }
-                oldTiles[tileY][tileX] = pTiles.concat(bTiles, mTiles, eTiles, tTiles)
+                oldTiles[tileY][tileX] = pTiles.concat(bTiles, mTiles, cTiles, eTiles, tTiles)
                 setTiles(oldTiles)
                 props.st(oldTiles);
             }
@@ -342,7 +344,7 @@ function Board(props) {
                         const other_90_percents = ["G-", "*S", "PT", "I0", "B1", "B2", "B3", "J1", "J2", "J3", "J4"];
                         const is_90_percent = conflictingTiles[1].includes(tile) || other_90_percents.includes(tile) || tile[0] == "S" || levelThings.isKey(k) || levelThings.isCircleChest(tile);
                         const is_85_percent = tile[0] === "d";
-                        let ds = (1 - (is_90_percent ? 0.9 : (is_85_percent ? 0.85 : 0.75))) * tileSize;
+                        let ds = (1 - (levelThings.isPlasticCapsule(tile) ? 0.95 : (is_90_percent ? 0.9 : (is_85_percent ? 0.85 : 0.75)))) * tileSize;
                         if (tile[0] == "S") {
                             // Add a number to be displayed.
                             ctx.fillStyle = "rgba(255,255,255,0.7)";

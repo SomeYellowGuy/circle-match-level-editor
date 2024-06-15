@@ -88,7 +88,10 @@ const names = {
     "S6": "Custom Spawn Point #6",
     "S7": "Custom Spawn Point #7",
     "S8": "Custom Spawn Point #8",
-    "S9": "Custom Spawn Point #9"
+    "S9": "Custom Spawn Point #9",
+    // Plastic Capsules
+    "p1": "1-Layered Plastic Capsule",
+    "p2": "2-Layered Plastic Capsule"
 }
 
 export default names;

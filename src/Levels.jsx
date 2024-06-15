@@ -120,6 +120,7 @@ function Levels(props) {
                         break;
                     case "button":
                     case "paint":
+                    case "ice":
                         g.optional = true;
                 }
                 g.option = !!(!!g.optional && !!i.amount)

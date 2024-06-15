@@ -137,6 +137,20 @@ const levelThings = {
     },
 
     /**
+     * Tells if a tile is a plastic capsule.
+     */
+    isPlasticCapsule (tile) {
+        return tile[0] == "p";
+    },
+
+    /**
+     * Tells if a tile is an encasing blocker (excluding capsules).
+     */
+    encases (tile) {
+        return tile[0] == "D" || tile[0] == "b" || (tile[0] == "c" && !isNaN(parseInt(tile[1])));
+    },
+
+    /**
      * Get the displayed offset of a tile, via an array with two numbers.
      */
     getOffsetOf (tile) {
