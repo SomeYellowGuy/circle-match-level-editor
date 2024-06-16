@@ -122,7 +122,7 @@ const tabTiles = {
         },
         circle: {
             name: "Circle Cannons",
-            tiles: ["C-", "C|", "CO", "C+", "CK"]
+            tiles: ["C-", "C|", "CO", "C+", "CK","C/"]
         }
     }
 }
