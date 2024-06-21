@@ -72,6 +72,8 @@ const names = {
     "CO": "Radial Circle Cannon",
     "C+": "Extra Time Circle Cannon",
     "CK": "Key Cannon",
+    "C/": "Rainbow Circle Cannon",
+    "Cp": "Plastic Capsule Cannon",
     /// Walls
     "-W": "Remove all Wall Tiles",
     // Beads

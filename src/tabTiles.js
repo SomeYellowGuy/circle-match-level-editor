@@ -118,7 +118,7 @@ const tabTiles = {
         },
         layered: {
             name: "Layered Cannons",
-            tiles: ["CW", "CJ", "Cd"]
+            tiles: ["CW", "CJ", "Cd", "Cp"]
         },
         circle: {
             name: "Circle Cannons",

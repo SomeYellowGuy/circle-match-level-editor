@@ -6,7 +6,7 @@ const levelThings = {
     `Score,Button,Globe,Paint,Ice,
     Red Circle,Orange Circle,Yellow Circle,Green Circle,Blue Circle,Purple Circle,Black Circle,
     Striped Circle,Radial Circle,Rainbow Circle,
-    Metal Ball (L),Watermelon (L),Donut (L),Jawbreaker,Candy Beads`.split(","),
+    Metal Ball (L),Watermelon (L),Donut (L),Jawbreaker,Candy Beads,Plastic Capsule`.split(","),
 
     noGoalNumber:
     `score`.split(","),
@@ -24,19 +24,19 @@ const levelThings = {
      * All possible types of a cannon of a level.
      */
     cannonTypes:
-    `Watermelon,Globe,Vertical Striped Circle,Horizontal Striped Circle,Radial Circle,Extra Time Circle,Donut,Jawbreaker,Key,Rainbow Circle`.split(","),
+    `Watermelon,Globe,Vertical Striped Circle,Horizontal Striped Circle,Radial Circle,Extra Time Circle,Donut,Jawbreaker,Key,Rainbow Circle,Plastic Capsule`.split(","),
 
     /**
-     * All layered cannon types (in snake case).
+     * All layered cannon types (in lower case + spaces).
      */
     layeredCannons:
-    `watermelon,jawbreaker,donut`.split(","),
+    `watermelon,jawbreaker,donut,plastic capsule`.split(","),
 
     /**
      * All layered goals (in snake case).
      */
     layeredGoals:
-    `metal_ball,donut,watermelon`.split(","),
+    `metal_ball,donut,watermelon,plastic_capsule`.split(","),
 
     /**
      * All types of hardness.

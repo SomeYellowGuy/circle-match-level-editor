@@ -382,11 +382,16 @@ function Menu(props) {
                         width: "40%"
                     }} /></label>
             </div>);
-            if (goal.amount) goalItems.push(<div>
-                <label htmlFor="quantity" className={"MenuAreaLabel"}>Amount<input type="number"
-                    className={"MenuAreaField"} onChange={(e) => changeGoalAttribute(i, "amount", e.target.value)}
+            if (goal.amount) goalItems.push(<div className="MenuWHField MenuAreaEDLabel">
+                 <label htmlFor="input">Anti?<input type="checkbox"
+                    className={"MenuWHFieldCheckbox"} onChange={(e) => changeGoalAttribute(i, "anti", e.target.checked, true)}
+                    min={1} max={Infinity} step={1} checked={goal.anti} style={{
+                        width: "15%"
+                    }} /></label>
+                <label htmlFor="quantity">Amount<input type="number"
+                    className={"MenuWHFieldNum"} onChange={(e) => changeGoalAttribute(i, "amount", e.target.value)}
                     min={1} max={Infinity} step={1} value={goal.amount} disabled={goal.optional && !goal.option} style={{
-                        width: "40%"
+                        width: "25%"
                     }} /></label>
             </div>);
             items.push(
@@ -490,11 +495,15 @@ function Menu(props) {
         }
         // Goals!
         let goals = props.g
-        let dataGoals = goals.map(o=>({
-            type: o.type.slice(-3) === "(L)" ? o.type.replace(/ /g, '_').toLowerCase().slice(0, -4) :
-                    o.type.replace(/ /g, '_').toLowerCase(),
-            amount: (o.optional ? (o.option ? Number(o.amount) : null) : Number(o.amount) || null)
-        }));
+        let dataGoals = goals.map(o=>{
+            const obj = {
+                type: o.type.slice(-3) === "(L)" ? o.type.replace(/ /g, '_').toLowerCase().slice(0, -4) :
+                        o.type.replace(/ /g, '_').toLowerCase(),
+                amount: (o.optional ? (o.option ? Number(o.amount) : null) : Number(o.amount) || null)
+            }
+            if (o.anti) obj.anti = true;
+            return obj;
+        });
         data.goals = dataGoals;
         // Tiles.
         let tilemap = [];

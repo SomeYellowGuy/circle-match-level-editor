@@ -19,7 +19,8 @@ const tooltips = {
         "metal ball (l)": "Collect metal ball layers!",
         "watermelon (l)": "Collect watermelon layers!",
         "donut (l)": "Collect donut layers!",
-        "jawbreaker": "Collect pieces of jawbreaker gum!"
+        "jawbreaker": "Collect pieces of jawbreaker gum!",
+        "plastic capsule": "Collect plastic capsule layers!"
     }
 }
 

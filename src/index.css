@@ -324,6 +324,10 @@ button:disabled {
 	margin-left: 10px;
 }
 
+.MenuWHFieldCheckbox {
+	margin-left: 0;
+}
+
 .MenuAreaField {
 	float: right;
 	margin: 10px;

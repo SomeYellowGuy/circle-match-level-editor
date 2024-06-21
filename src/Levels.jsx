@@ -107,6 +107,7 @@ function Levels(props) {
             for (let i of d.goals) {
                 if (!i.type) return false;
                 let g = {};
+                if (i.anti) g.anti = true;
                 g.type = i.type.replace(/_/g, ' ').split(" ").map(o=>o[0].toUpperCase()+o.slice(1)).join(" ");
                 switch (i.type) {
                     case "metal_ball":
