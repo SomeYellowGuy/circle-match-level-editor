@@ -45,6 +45,12 @@ const levelThings = {
     `Normal,Hard,Super Hard,Extremely Hard,Mythically Hard`.split(",").map(o => o + " Level"),
 
     /**
+     * All types of hardness, but with no Level attached at the end.
+     */
+    hardTypesNoLevel:
+    `Normal,Hard,Super Hard,Extremely Hard,Mythically Hard`.split(","),
+
+    /**
      * Returns an array of all custom spawn points from S1, S2 ... S9.
      */
     customSpawns:
@@ -92,6 +98,16 @@ const levelThings = {
      */
     colorTiles:
     `*0,*1,*2,*3,*4,*5,*B`.split(","),
+
+    /**
+     * Colo(u)rs of the score targets.
+     */
+    starColours: ["#ff3333", "#22bb22", "#ffbb00"],
+
+    /**
+     * Maximum number that a score target can be.
+     */
+    maxScoreTarget: 4294967295,
 
     /**
      * Tells if a tile is a wall (example: beads)
@@ -168,6 +184,57 @@ const levelThings = {
             }
         }
         return [0, 0];
+    },
+
+    /**
+     * Tells if the given filter allows a level via its data.
+     */
+    meetsFilter (filter, data) {
+        // n - number
+        function number(o, n) {
+            return !o.enabled || (o.min <= n && o.max >= n)
+        }
+        // c - checkbox state
+        function checkbox(o, c) {
+            return !o.enabled || (o.checked == c)
+        }
+        // h - hard difficulty (0 - 4)
+        function hard(o, h) {
+            return o[h];
+        }
+
+        for (let key in filter) {
+            const value = filter[key];
+            if (key === "hard") {
+                if (!hard(value, (data.hard || 0))) return false;
+            } else if (value.max !== undefined && value.min !== undefined) {
+                let v;
+                switch (key) {
+                    case "star1": v = data.targets[0]; break;
+                    case "star2": v = data.targets[1]; break;
+                    case "star3": v = data.targets[2]; break;
+                    case "moves":
+                        v = data.moves || data.time;
+                        break;
+                    default:
+                        v = data[key];
+                }
+                if (!number(value, v)) return false;
+            } else {
+                let v;
+                switch (key) {
+                    case "timed":
+                        v = Boolean(data.time);
+                        break;
+                    default:
+                        v = data[key];
+                }
+                if (!checkbox(value, v)) return false;
+            }
+        }
+
+        // Meets all filters!
+        return true;
     }
 }
 

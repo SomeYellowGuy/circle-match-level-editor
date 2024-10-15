@@ -6,14 +6,6 @@ import levelThings from "./levelThings";
 //const electronDialog = remote.dialog;
 
 function Levels(props) {
-    const [levelNums, setLN] = useState([]);
-    const [update, updateLevels] = useState(0);
-
-    const inputLevels = useRef(null);
-
-    useEffect(()=>{
-        setLN(props.lns)
-    }, [props.lns])
 
     async function generateHandle() {
         // Get the levels of a directory.
@@ -21,13 +13,32 @@ function Levels(props) {
             if (!ob.good) return;
             let lns = [];
             for (const level in ob.levels) {
-                lns.push([level, ob.levels[level].hard]);
+                lns.push([level, soft(ob.levels[level])]);
             }
-            setLN(lns.sort((a,b)=>a[0] - b[0]));
-            props.slns(lns.sort((a,b)=>a[0] - b[0]));
+            let sorted = lns.sort((a,b)=>a[0] - b[0]);
+            props.slns(sorted);
+            props.selns([ ...sorted ]);
+            props.resetFilters();
             // Update the directory.
             props.sd(ob.dir);
         });
+    }
+
+    function soft(data) {
+        let d = {
+            targets: data.targets,
+            hard: data.hard || 0,
+            colours: data.colours,
+            width: data.width || 9,
+            height: data.height || 9,
+            black: data.black || false,
+            increaseColours: data.increaseColours ? true : false,
+            immediateShowdown: !data.immediateShowdown ? false : true
+        }
+        if (data.moves) d.moves = data.moves;
+        else if (data.time) d.time = data.time;
+
+        return d;
     }
 
     function applySelectedLevel(o) {
@@ -209,8 +220,8 @@ function Levels(props) {
     }
 
     function makeLevelButtons() {
-        let comps = levelNums.sort((a, b) => a[0] - b[0]).map(o => {
-            const n = o[1] || 0;
+        let comps = props.lns.sort((a, b) => a[0] - b[0]).map(o => {
+            const n = o[1].hard || 0;
             return <button 
                 className={"LNButton" + (props.l === o[0] ? " LNSel" : (" h" + n + "LNColor"))}
                 key={o[0]}
@@ -222,50 +233,22 @@ function Levels(props) {
     }
 
     useEffect(() => {
-        function loadLevels() {
-            const files = inputLevels.current.files;
-            // Loop through every File found.
-            let numbers = [];
-            let filtered = [];
-            for (const o of files) {
-                if (o.name.slice(-5) === ".json" && !isNaN(Number(o.name.slice(0, -5)))) {
-                    filtered.push(o);
-                }
-            }
-            let len = filtered.length;
-            let i = 0;
-            for (const file of filtered) {
-                const last = len - 1 === i;
-                // Get levels that exist.
-                const n = file.name;
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    const result = e.target.result;
-                    if (!result) return;
-                    // Parse the text as JSON.
-                    const data = JSON.parse(result);
-                    numbers.push([Number(n.slice(0, -5)), data.hard || 0]);
-                    if (last) updateLevels(update + 1);
-                };
-                reader.readAsText(file);
-                i++;
-            }
-            let sorted = numbers.sort((a,b)=>a[0]-b[0]);
-            setLN(sorted);
-            props.slns(sorted);
-        }
 
         function loadLevelsSel() {
-            loadLevels();
+            props.loadLevels();
         }
 
-        if (inputLevels && inputLevels.current) {
-            inputLevels.current.addEventListener("change", loadLevelsSel, false);
+        if (props.inputLevels && props.inputLevels.current) {
+            props.inputLevels.current.addEventListener("change", loadLevelsSel, false);
             return function cleanup() {
-                inputLevels.current.removeEventListener("change", loadLevelsSel, false);
+                props.inputLevels.current.removeEventListener("change", loadLevelsSel, false);
             };
         }
     });
+
+    function openFilterMenu() {
+        props.setFGActive(true);
+    }
 
     return (
         <div className="Levels">
@@ -275,7 +258,7 @@ function Levels(props) {
             {(typeof window.showDirectoryPicker === "undefined") ?
                 (
                 <div className="LevelsButton LevelsButtonDiv">
-                    <input style={{ display: "none" }} type="file" id="files" webkitdirectory="" directory="" multiple="" ref={inputLevels}/>
+                    <input style={{ display: "none" }} type="file" id="files" webkitdirectory="" directory="" multiple="" ref={props.inputLevels}/>
                     <label htmlFor="files">Select Level Folder</label>
                 </div>
                 )
@@ -286,8 +269,8 @@ function Levels(props) {
                 </button>
                 )
             }
-            <button className="LevelsButton" onClick={()=>{
-                const newLevel = Math.max(...levelNums.map(o => o[0]))+1;
+            <button className="LevelsButton"  disabled={props.elns.length == 0} onClick={()=>{
+                const newLevel = Math.max(...props.lns.map(o => o[0]))+1;
                 if (newLevel === -Infinity) return;
                 let t = [];
                 for (let i = 0; i < 9; i++) {
@@ -324,8 +307,13 @@ function Levels(props) {
                 Create New Level
             </button>
             <div id="LNDiv">
-                {levelNums.length > 0 ? makeLevelButtons() : (levelNums.length === 0 ? "There are no levels! Create one!" : "Select a folder to get started!")}
+                {props.lns.length > 0 ? makeLevelButtons() : (props.lns.length === 0 ? (
+                    props.elns.length > 0 ? "No levels meet the filter!" : "There are no levels! Create one!"
+                ) : "Select a folder to get started!")}
             </div>
+            <button className="LevelsButton" onClick={openFilterMenu}  disabled={props.elns.length == 0}>
+                <i>Filter Levels...</i>
+            </button>
         </div>
     )
 }

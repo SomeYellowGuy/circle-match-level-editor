@@ -593,7 +593,8 @@ function Menu(props) {
         // Allow the user to save!
         window.API.fileSystem.saveLevel(props.l, props.dir, data).then(() => {})
         if (!props.lns.some(o => o[0] === props.l)) {
-            props.slns(props.lns.concat([[props.l, data.hard]]))
+            props.selns(props.elns.concat([[props.l, data]]));
+            props.slns(props.lns.concat([[props.l, data]]))
         }
     }
     
@@ -923,9 +924,16 @@ function Menu(props) {
                         outlineStyled: ["black", "black", "white", "white", "white"], width: 56, code: "hard"
                     }),
 
-                    makeField(<><strong style={{ color: "#ff3333" }}>★ </strong>Target</>, "num", { min: 1, max: 4294967295, step: 1, value: 10000, width: 50, code: "star1" }),
-                    makeField(<><strong style={{ color: "#22bb22" }}>★ </strong>Target</>, "num", { min: 1, max: 4294967295, step: 1, value: 20000, width: 50, code: "star2" }),
-                    makeField(<><strong style={{ color: "#ffbb00" }}>★ </strong>Target</>, "num", { min: 1, max: 4294967295, step: 1, value: 30000, width: 50, code: "star3" }),
+                    makeField(<><strong style={{ color: levelThings.starColours[0] }}>★ </strong>Target</>, "num", 
+                        { min: 1, max: levelThings.maxScoreTarget, step: 1, value: 10000, width: 50, code: "star1" }
+                    ),
+                    makeField(<><strong style={{ color: levelThings.starColours[1] }}>★ </strong>Target</>, "num",
+                        { min: 1, max: levelThings.maxScoreTarget, step: 1, value: 20000, width: 50, code: "star2" }
+                    ),
+                    makeField(<><strong style={{ color: levelThings.starColours[2] }}>★ </strong>Target</>, "num",
+                        { min: 1, max: levelThings.maxScoreTarget, step: 1, value: 30000, width: 50, code: "star3"}
+                    ),
+
                     makeField("Increase colo(u)rs?", "checkbox", { code: "increaseColours", dc: false }),
                     makeField("Immediate showdown?", "checkbox", { code: "immediateShowdown", dc: true })
                 ]

@@ -16,7 +16,7 @@ const fs = require("fs");
 const os = require("os");
 
 // Change the version if required.
-const reactDevToolsVersion = "5.1";
+const reactDevToolsVersion = "6.0";
 
 const reactDevToolsPath = path.join(
   os.homedir(),
@@ -116,7 +116,7 @@ ipcMain.handle('read-dir-levels', async () => {
     } catch (e) {
       console.warn(file + " is invalid JSON. Skipping it...")
     }
-    if (data) levels[Number(file.slice(0, -5))] = { hard: data.hard || 0};
+    if (data) levels[Number(file.slice(0, -5))] = { ... data };
   }
   return {good: true, levels: levels, dir: dir[0]};
 })
