@@ -58,7 +58,7 @@ button:disabled {
 		#65c1ef 200px
 	);
 	width: 270px;
-	height: 60vh;
+	height: 64vh;
 	text-align: center;
 	float: right;
 	font-size: 50px;
@@ -68,6 +68,11 @@ button:disabled {
 	position: absolute;
 }
 
+.Levels div b {
+	font-size: 42px;
+	font-weight: 700;
+}
+
 .LevelSelect {
 	background-color: #aad7ff;
 }
@@ -75,7 +80,7 @@ button:disabled {
 .LevelsButton {
 	background-color: #d8f2ff;
 	border-radius: 7px;
-	width: 80%;
+	width: 86%;
 	height: 6%;
 	border: 0px;
 	font-size: 18px;
@@ -94,7 +99,7 @@ button:disabled {
 }
 
 #LNDiv {
-	height: 49%;
+	height: 40%;
 	margin-top: 5px;
 	color: white;
 	font-size: 25px;
@@ -106,10 +111,45 @@ button:disabled {
 	border-radius: 5px;
 	border: 0;
 	margin: 4px 5px;
-	width: 25%;
-	font-size: 30px;
+	width: 23%;
+	font-size: 24px;
 	font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 	transition-duration: 0.2s;
+}
+
+.LevelsSwitch {
+	background: linear-gradient(to right,#2e576c,#245168);
+	background-color: #2e576c;
+	text-align: center;
+	color: white;
+	border-radius: 5px;
+	border: 0;
+	width: 40%;
+	font-size: 24px;
+	font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+	transition-duration: 0.2s;
+}
+
+.LevelsSwitch:hover {
+	background: rgba(255, 255, 255, 0.743);
+	color: #2e576c;
+	transition-duration: 0.3s;
+}
+
+.LevelsSwitch.selected {
+	background: rgba(210, 233, 255, 0.743);
+	color: #2e576c;
+	transition-duration: 0.3s;
+}
+
+.LevelsSwitch#star {
+	border-top-right-radius: 0 !important;
+	border-bottom-right-radius: 0 !important;
+}
+
+.LevelsSwitch#moon {
+	border-top-left-radius: 0 !important;
+	border-bottom-left-radius: 0 !important;
 }
 
 .h0LNColor { background-color: #003955; }
@@ -121,6 +161,8 @@ button:disabled {
 .h3LNColor { background-color: #191919; }
 
 .h4LNColor { background-color: #25264a; }
+
+.h10LNColor { background-color: #382365; }
 
 .LNButton:hover {
 	background-color: #3d8eb7;
@@ -452,7 +494,7 @@ button:disabled {
 		#f2c15f 200px
 	);
 	width: 270px;
-	height: 40vh;
+	height: 36vh;
 	text-align: center;
 	float: right;
 	font-size: 50px;
@@ -615,4 +657,28 @@ input {
 	height: 30px;
 	text-align: center;
 	margin: 20px;
+}
+
+/* Alert */
+
+/* Filter Dialog */
+
+.Alert {
+	background: repeating-linear-gradient(
+		40deg,
+		#d9ff66,
+		#d9ff66 100px,
+		#d7ed59 100px,
+		#cbf25f 200px
+	);
+	border-radius: 8px;
+    width: 40%;
+    height: 40%;
+    top: calc(50% - 20%);
+    left: calc(50% - 20%);
+    position: absolute;
+
+	font-size: 32px;
+	padding: 10px;
+	font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }

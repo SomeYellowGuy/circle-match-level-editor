@@ -4,6 +4,7 @@ import Menu from "./Menu.jsx";
 import Board from "./Board.jsx";
 import Tiles from "./Tiles.jsx";
 import FilterDialog from "./FilterDialog.jsx";
+import Alert from "./Alert.jsx";
 import levelThings from "./levelThings.js";
 
 import { useState, useRef } from "react";
@@ -11,6 +12,7 @@ import { useState, useRef } from "react";
 function App() {
 	const [level, setLevel] = useState(null);
 	const [selected, setSelected] = useState(null);
+	const [nightMode, setNightMode] = useState(false);
 
 	let t = [];
     for (let i = 0; i < 9; i++) {
@@ -18,14 +20,21 @@ function App() {
         for (let j = 0; j < 12; j++) l.push(["**"]);
         t.push(l)
     }
+
 	const [tiles, setTiles] = useState(t);
 	const [g, setG] = useState([]);
+	const [mg, setMG] = useState([[], [], []]);
 	const [teles, setTeles] = useState([]);
 	const [c, setC] = useState([]);
 	const [ts, setTS] = useState(null);
+
 	const [lns, setLNS] = useState([]);
 	const [elns, setELNS] = useState([]);
-	const [dir, setDir] = useState(null);
+
+	const [nlns, setNightLNS] = useState([]);
+	const [nelns, setNightELNS] = useState([]);
+
+	const [dir, setDir] = useState([null, null]);
 	// Currently selected teleporter.
 	const [sct, setsct] = useState(0);
 	// Currently selected path (gravitation).
@@ -65,6 +74,11 @@ function App() {
 	})
 
 	const [FGActive, setFGActive] = useState(false)
+	const [alertActive, setAlertActive] = useState(false)
+	const [alertContent, setAlertContent] = useState({
+		title: "",
+		content: ""
+	})
 
 	// Stores the default filtering options for levels.
 	const defaultFilter = {
@@ -121,6 +135,7 @@ function App() {
 				// Get levels that exist.
 				const n = file.name;
 				const reader = new FileReader();
+				let stop = false;
 				reader.onload = (e) => {
 					const result = e.target.result;
 					if (!result) return;
@@ -131,7 +146,25 @@ function App() {
 					// nice!
 					numbers.push([Number(n.slice(0, -5)), data]);
 					if (last) setLevel(last + 1);
+					if (nightMode && !data.night) {
+						setAlertContent({
+							title: "Alert",
+							content: "It looks like you are trying to upload a folder containing normal levels as the night level folder. Therefore, the upload has been stopped."
+						})
+						setAlertActive(true);
+						stop = true;
+					} else if (!nightMode && data.night) {
+						setAlertContent({
+							title: "Alert",
+							content: "It looks like you are trying to upload a folder containing night levels as the normal level folder. Therefore, the upload has been stopped."
+						})
+						setAlertActive(true);
+						stop = true;
+					}
 				};
+				if (stop) {
+					return;
+				}
 				reader.readAsText(file);
 				i++;
 			}
@@ -162,10 +195,14 @@ function App() {
 				l={level} sm={setMs}
 				dir={dir} m={menuS}
 				g={g} sg={setG}
+				mg={mg} smg={setMG}
 				teles={teles} steles={setTeles}
 				t={tiles} st={setTiles}
 				elns={elns} selns={setELNS}
 				lns={lns} slns={setLNS} sc={setC} c={c}
+				nlns={nlns} snlns={setNightLNS}
+				nelns={nelns} snelns={setNightELNS}
+				nightMode={nightMode}
 				cd={cameraData} setcd={setCameraData}
 				spd={spawnData} setspd={setSpawnData}
 				gd={gravitationData} setgd={setGravitationData}
@@ -191,10 +228,15 @@ function App() {
 				<Levels
 					l={level} sl={setLevel}
 					dir={dir} st={setTiles} sd={setDir}
-					sm={setMs} sg={setG}
+					sm={setMs} sg={setG} smg={setMG}
 					steles={setTeles}
+
 					slns={setLNS} lns={lns}
 					elns={elns} selns={setELNS}
+
+					snlns={setNightLNS} nlns={nlns}
+					nelns={nelns} snelns={setNightELNS}
+
 					sc={setC}
 					cd={cameraData} setcd={setCameraData}
 					setspd={setSpawnData} spd={spawnData}
@@ -203,6 +245,10 @@ function App() {
 					loadLevels={loadLevels}
 					resetFilters={resetFilters}
 					inputLevels={inputLevels}
+
+					nightMode={nightMode} setNightMode={setNightMode}
+
+					setAlertActive={setAlertActive} setAlertContent={setAlertContent}
 				/>
 				<Tiles
 					ts={ts} t={tiles} st={setTiles}
@@ -216,6 +262,13 @@ function App() {
 				FA={filterAttributes} setFA={setFA}
 				resetFilters={resetFilters}
 				loadLevels={loadLevels}
+
+				nightMode={nightMode}
+			/>
+
+			<Alert
+				alertActive={alertActive} setAlertActive={setAlertActive}
+				alertContent={alertContent}
 			/>
 		</>
 	)

@@ -105,9 +105,31 @@ const levelThings = {
     starColours: ["#ff3333", "#22bb22", "#ffbb00"],
 
     /**
+     * Colo(u)rs of the moons.
+     */
+    moonColours: ["#3355ff", "#8c2bd6", "#e320b5"],
+
+    /**
      * Maximum number that a score target can be.
      */
     maxScoreTarget: 4294967295,
+
+    /**
+     * Star symbol.
+     */
+    star: "★",
+
+    /**
+     * Moon symbol.
+     */
+    moon: "☾",
+
+    /**
+     * Get the required day symbol.
+     */
+    symbol (nightMode) {
+        return nightMode ? "☾" : "★";
+    },
 
     /**
      * Tells if a tile is a wall (example: beads)

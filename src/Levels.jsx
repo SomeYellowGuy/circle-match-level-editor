@@ -7,20 +7,50 @@ import levelThings from "./levelThings";
 
 function Levels(props) {
 
+    const [folderOpened, setFolderOpened] = useState([false, false]);
+
     async function generateHandle() {
         // Get the levels of a directory.
         window.API.fileSystem.readDirLevels().then((ob) => {
             if (!ob.good) return;
             let lns = [];
             for (const level in ob.levels) {
+                if (props.nightMode && !ob.levels[level].night) {
+                    props.setAlertContent({
+                        title: "Alert",
+                        content: "It looks like you are trying to upload a folder containing normal levels as the night level folder. Therefore, the upload has been stopped to prevent further errors."
+                    })
+                    props.setAlertActive(true);
+                    return;
+                } else if (!props.nightMode && ob.levels[level].night) {
+                    props.setAlertContent({
+                        title: "Alert",
+                        content: "It looks like you are trying to upload a folder containing night levels as the normal level folder. Therefore, the upload has been stopped to prevent further errors."
+                    })
+                    props.setAlertActive(true);
+                    return;
+                }
                 lns.push([level, soft(ob.levels[level])]);
             }
             let sorted = lns.sort((a,b)=>a[0] - b[0]);
-            props.slns(sorted);
-            props.selns([ ...sorted ]);
+
+            if (props.nightMode) {
+                props.snlns(sorted);
+                props.snelns([ ...sorted ]);
+                setFolderOpened([folderOpened[0], true]);
+
+                // Update the directory.
+                props.sd([props.dir[0], ob.dir]);
+            } else {
+                props.slns(sorted);
+                props.selns([ ...sorted ]);
+                setFolderOpened([true, folderOpened[1]]);
+
+                // Update the directory.
+                props.sd([ob.dir, props.dir[1]]);
+            }
+
             props.resetFilters();
-            // Update the directory.
-            props.sd(ob.dir);
         });
     }
 
@@ -33,7 +63,8 @@ function Levels(props) {
             height: data.height || 9,
             black: data.black || false,
             increaseColours: data.increaseColours ? true : false,
-            immediateShowdown: !data.immediateShowdown ? false : true
+            immediateShowdown: !data.immediateShowdown ? false : true,
+            night: data.night ?? false
         }
         if (data.moves) d.moves = data.moves;
         else if (data.time) d.time = data.time;
@@ -41,14 +72,51 @@ function Levels(props) {
         return d;
     }
 
+    function getCorrectDir() {
+        return props.dir[props.nightMode ? 1 : 0];
+    }
+
     function applySelectedLevel(o) {
-        window.API.fileSystem.readLevel(o, props.dir).then((data) => {
+        window.API.fileSystem.readLevel(o, getCorrectDir()).then((data) => {
             if (data.invalid) return;
-            if (data && props.dir) {
+            if (data && getCorrectDir()) {
                 props.sl(o)
                 load(data);
             }
         });
+    }
+
+    useEffect(() => {
+        props.sl(null);
+    }, [props.nightMode])
+
+    function extractGoals(goals) {
+        let go = [];
+        for (let i of goals) {
+            if (!i.type) return false;
+            let g = {};
+            if (i.anti) g.anti = true;
+            g.type = i.type.replace(/_/g, ' ').split(" ").map(o=>o[0].toUpperCase()+o.slice(1)).join(" ");
+            switch (i.type) {
+                case "metal_ball":
+                    g.type = "Metal Ball (L)";
+                    break;
+                case "watermelon":
+                    g.type = "Watermelon (L)";
+                    break;
+                case "donut":
+                    g.type = "Donut (L)"
+                    break;
+                case "button":
+                case "paint":
+                case "ice":
+                    g.optional = true;
+            }
+            g.option = !!(!!g.optional && !!i.amount)
+            if (props.nightMode || !levelThings.noGoalNumber.includes(i.type)) g.amount = i.amount || 3
+            go.push(g)
+        }
+        return go;
     }
 
     function load(d) {
@@ -72,11 +140,11 @@ function Levels(props) {
                 width: d.width || 9,
                 height: d.height || 9,
                 hard: levelThings.hardTypes[d.hard || 0],
-                star1: d.targets[0],
-                star2: d.targets[1],
-                star3: d.targets[2],
+                star1: props.nightMode ? undefined : d.targets[0],
+                star2: props.nightMode ? undefined : d.targets[1],
+                star3: props.nightMode ? undefined : d.targets[2],
                 increaseColours: !!d.increaseColours,
-                immediateShowdown: d.immediateShowdown ?? true,
+                immediateShowdown: props.nightMode ? undefined : (d.immediateShowdown ?? true),
                 seed: d.seed || 100,
                 seedEnabled: d.seed !== null && d.seed !== undefined,
                 currentSelectedTele: 1,
@@ -113,32 +181,24 @@ function Levels(props) {
                 requirements: foundRequirements
             };
             props.setcd(cd);
+
             // Load goals.
-            let go = [];
-            for (let i of d.goals) {
-                if (!i.type) return false;
-                let g = {};
-                if (i.anti) g.anti = true;
-                g.type = i.type.replace(/_/g, ' ').split(" ").map(o=>o[0].toUpperCase()+o.slice(1)).join(" ");
-                switch (i.type) {
-                    case "metal_ball":
-                        g.type = "Metal Ball (L)";
-                        break;
-                    case "watermelon":
-                        g.type = "Watermelon (L)";
-                        break;
-                    case "donut":
-                        g.type = "Donut (L)"
-                        break;
-                    case "button":
-                    case "paint":
-                    case "ice":
-                        g.optional = true;
+            if (props.nightMode) {
+                if (!d.moonGoals) {
+                    console.error("No moon goals found!");
+                    return;
                 }
-                g.option = !!(!!g.optional && !!i.amount)
-                if (!levelThings.noGoalNumber.includes(i.type)) g.amount = i.amount || 3
-                go.push(g)
+                let mgo = [
+                    extractGoals(d.moonGoals[0]),
+                    extractGoals(d.moonGoals[1]),
+                    extractGoals(d.moonGoals[2])
+                ]
+                props.smg(mgo);
+            } else {
+                let go = extractGoals(d.goals);
+                props.sg(go);
             }
+
             let editorTiles = [];
             let tiles = d.tilemap.map(o=>o.split(","));
             let tc = [];
@@ -175,7 +235,6 @@ function Levels(props) {
                 }
                 editorTiles.push(xt);
             }
-            props.sg(go);
             props.st(editorTiles);
             // Load cannons.
             let ca = [];
@@ -220,8 +279,8 @@ function Levels(props) {
     }
 
     function makeLevelButtons() {
-        let comps = props.lns.sort((a, b) => a[0] - b[0]).map(o => {
-            const n = o[1].hard || 0;
+        let comps = from().sort((a, b) => a[0] - b[0]).map(o => {
+            const n = props.nightMode ? 10 : (o[1].hard || 0);
             return <button 
                 className={"LNButton" + (props.l === o[0] ? " LNSel" : (" h" + n + "LNColor"))}
                 key={o[0]}
@@ -230,6 +289,17 @@ function Levels(props) {
                 }}
         >{o[0]}</button>});
         return comps;
+    }
+
+    function createSwitch() {
+        let buttons = [];
+        buttons.push(
+            <button className={"LevelsSwitch " + (!props.nightMode ? "selected" : "")} key={0} id="star" onClick={() => {props.setNightMode(false)}}>{levelThings.star}</button>
+        )
+        buttons.push(
+            <button className={"LevelsSwitch " + (props.nightMode ? "selected" : "")} key={1} id="moon" onClick={() => {props.setNightMode(true)}}>{levelThings.moon}</button>
+        )
+        return buttons;
     }
 
     useEffect(() => {
@@ -250,27 +320,34 @@ function Levels(props) {
         props.setFGActive(true);
     }
 
+    function from() {
+        return props.nightMode ? [ ...props.nlns ] : [ ...props.lns ]
+    }
+
+    function eFrom() {
+        return props.nightMode ? [ ...props.nelns ] : [ ...props.elns ]
+    }
+
     return (
         <div className="Levels">
             <div>
                 <b>Levels</b>
             </div>
-            {(typeof window.showDirectoryPicker === "undefined") ?
+            {
                 (
-                <div className="LevelsButton LevelsButtonDiv">
-                    <input style={{ display: "none" }} type="file" id="files" webkitdirectory="" directory="" multiple="" ref={props.inputLevels}/>
-                    <label htmlFor="files">Select Level Folder</label>
-                </div>
-                )
-                :
-                (
-                <button className="LevelsButton" onClick={generateHandle}>
-                    Select Level Folder
-                </button>
+                <>
+                    <button className="LevelsButton" onClick={generateHandle}>
+                        Select {props.nightMode ? "☾" : ""} Level Folder
+                    </button>
+                    {createSwitch()}
+                </>
                 )
             }
-            <button className="LevelsButton"  disabled={props.elns.length == 0} onClick={()=>{
-                const newLevel = Math.max(...props.lns.map(o => o[0]))+1;
+            <button className="LevelsButton"  disabled={(props.nightMode) ? (!folderOpened[1]) : (!folderOpened[0])} onClick={()=>{
+                let newLevel = -Infinity;
+                if (from().length > 0) newLevel = Math.max(from().map(o => o[0]))+1;
+                else if ((props.nightMode) ? (folderOpened[1]) : (folderOpened[0])) newLevel = 1;
+
                 if (newLevel === -Infinity) return;
                 let t = [];
                 for (let i = 0; i < 9; i++) {
@@ -307,11 +384,17 @@ function Levels(props) {
                 Create New Level
             </button>
             <div id="LNDiv">
-                {props.lns.length > 0 ? makeLevelButtons() : (props.lns.length === 0 ? (
-                    props.elns.length > 0 ? "No levels meet the filter!" : "There are no levels! Create one!"
-                ) : "Select a folder to get started!")}
+                { props.nightMode ? 
+                    (props.nlns.length > 0 ? makeLevelButtons() : (props.nlns.length === 0 ? (
+                        props.nelns.length > 0 ? "No levels meet the filter!" : "There are no levels! Create one!"
+                    ) : "Select a folder to get started!"))
+                    :
+                    (props.lns.length > 0 ? makeLevelButtons() : (props.lns.length === 0 ? (
+                        props.elns.length > 0 ? "No levels meet the filter!" : "There are no levels! Create one!"
+                    ) : "Select a folder to get started!"))
+                }
             </div>
-            <button className="LevelsButton" onClick={openFilterMenu}  disabled={props.elns.length == 0}>
+            <button className="LevelsButton" onClick={openFilterMenu}  disabled={eFrom().length == 0}>
                 <i>Filter Levels...</i>
             </button>
         </div>

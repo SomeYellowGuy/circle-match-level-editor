@@ -20,8 +20,8 @@ function Tiles(props) {
         let items = [];
         for (let t of tile) {
             items.push(<div className="TilesTile" key={t} style={{
-                fontSize: "24px",
-                fontWeight: "500"
+                fontSize: "16px",
+                fontWeight: "800"
             }}>
                 {names[t] || "?"}
                 <button className="MenuGoalRemove TilesRemove" onClick={() => removeTile(x, y, t)}>×</button>

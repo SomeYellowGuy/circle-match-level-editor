@@ -1,6 +1,7 @@
 const tooltips = {
     goals: {
         "score": "Reach the first target score!",
+        "night_score": "Reach a particular score target!",
         "button": "Collect all buttons, or a specific amount of them!",
         "globe": "Collect globes!",
         "paint": "Spread paint to all tiles, or to a specific extent!",

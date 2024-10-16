@@ -40,6 +40,7 @@ function Menu(props) {
     let [currentTab, setCurrentTab] = useState("properties");
 
     const [goals, setGoals] = useState([]);
+    const [moonGoals, setMoonGoals] = useState([]);
     const [teleporters, setTeles] = useState([]);
     const [cannons, setCannons] = useState([]);
 
@@ -130,6 +131,10 @@ function Menu(props) {
             disabled = menuState.preferredColours.enabled;
         }
         if (!specialData && p.code === "seed") disabled = !menuState.seedEnabled;
+        if ((p.code === "hard" || p.code.startsWith("star") || p.code === "immediateShowdown") && props.nightMode) {
+            // No difficulty setting in night levels.
+            return;
+        }
         switch (type) {
             case "checkbox":
                 // Extra params: dc
@@ -197,14 +202,23 @@ function Menu(props) {
         }
     }
 
-    function addGoal() {
+    function addGoal(moon) {
         // Create a goal.
-        let oldGoals = [...goals];
-        oldGoals.push({
-            type: "Score"
-        });
-        setGoals(oldGoals)
-        props.sg(oldGoals)
+        if (props.nightMode) {
+            let oldGoals = [...props.mg];
+            oldGoals[moon].push({
+                type: "Score",
+                amount: 10000
+            });
+            props.smg(oldGoals)
+        } else {
+            let oldGoals = [...goals];
+            oldGoals.push({
+                type: "Score"
+            });
+            setGoals(oldGoals)
+            props.sg(oldGoals)
+        }
     }
 
     function addTele() {
@@ -255,12 +269,19 @@ function Menu(props) {
         props.sc(c);
     }
 
-    function removeGoal(i) {
-        // Remove the goal.
-        let oldGoals = [...goals];
-        oldGoals.splice(i, 1);
-        setGoals(oldGoals)
-        props.sg(oldGoals)
+    function removeGoal(i, moon) {
+        if (props.nightMode) {
+            // Remove the goal.
+            let oldGoals = [...props.mg];
+            oldGoals[moon].splice(i, 1);
+            props.smg(oldGoals)
+        } else {
+            // Remove the goal.
+            let oldGoals = [...goals];
+            oldGoals.splice(i, 1);
+            setGoals(oldGoals);
+            props.sg(oldGoals);
+        }
     }
 
     function removeTele(i) {
@@ -286,12 +307,25 @@ function Menu(props) {
         if (attrib === "type") {
             g[n].optional = levelThings.optionalGoalNumber.includes(to.toLowerCase());
             g[n].option = false;
-            if (levelThings.noGoalNumber.includes(to.toLowerCase())) g[n].amount = null;
+            if (props.nightMode || levelThings.noGoalNumber.includes(to.toLowerCase())) g[n].amount = null;
             if (!g[n].amount && g[n].optional) g[n].amount = 3;
-            else if (!levelThings.optionalGoalNumber.includes(to.toLowerCase()) && !levelThings.noGoalNumber.includes(to.toLowerCase()) && !g[n].amount) g[n].amount = 3;
+            else if (!levelThings.optionalGoalNumber.includes(to.toLowerCase()) && (!props.nightMode && !levelThings.noGoalNumber.includes(to.toLowerCase())) && !g[n].amount) g[n].amount = 3;
         }
         setGoals(g);
         props.sg(g);
+    }
+
+    function changeMoonGoalAttribute(moon, n, attrib, to, c) {
+        let g = [...props.mg];
+        if (c) g[moon][n][attrib] = !g[moon][n][attrib];
+        g[moon][n][attrib] = typeof to !== "number" ? to : Number(to);
+        if (attrib === "type") {
+            g[moon][n].optional = levelThings.optionalGoalNumber.includes(to.toLowerCase());
+            g[moon][n].option = false;
+            if (!g[moon][n].amount && g[moon][n].optional) g[moon][n].amount = 3;
+            else if (!levelThings.optionalGoalNumber.includes(to.toLowerCase()) && !g[moon][n].amount) g[moon][n].amount = 3;
+        }
+        props.smg(g);
     }
 
     function changeCAttribute(n, attrib, to) {
@@ -346,60 +380,101 @@ function Menu(props) {
         return items;
     }
 
-    function makeGoals(go) {
-        go = goals;
-        let items = [];
-        // Make an Add Goal button.
-        items.push(<button id="MenuGoalAdd" onClick={addGoal} key={0}>
-            Add Goal
-        </button>)
-        // Render the goals.
+    function makeGoal(goal, i, moon) {
         const gt = levelThings.goals;
-        for (let i = 0; i < go.length; i++) {
-            let goal = go[i];
-            let goalTypes = [];
-            let goalItems = [];
-            for (let j = 0; j < gt.length; j++) goalTypes.push(<option key={j} style={{
-                backgroundColor: getC(gt[j]),
-                color: "black"
-            }}>{gt[j]}</option>)
-            goalItems.push(<button className="MenuGoalRemove" onClick={() => removeGoal(i)}>×</button>)
-            goalItems.push(<label className="MenuAreaLabel">Type
-                <select
-                    className="MenuAreaField" onChange={(e) => changeGoalAttribute(i, "type", e.target.value)}
-                    value={goal.type} style={{
-                        width: "62%"
-                    }}>
-                    {goalTypes}
-                </select>
-            </label>
-            )
-            goalItems.push(<div style={{ fontSize: "12px", wordSpacing: "2px", lineHeight: 1 }}>{tooltips.goals[goal.type.toLowerCase()]}</div>)
-            if (goal.optional) goalItems.push(<div>
-                <label htmlFor="input" className={"MenuAreaLabel"}>Specific?<input type="checkbox"
-                    className={"MenuAreaField"} onChange={(e) => changeGoalAttribute(i, "option", e.target.checked, true)}
-                    min={1} max={Infinity} step={1} checked={goal.option} style={{
-                        width: "40%"
-                    }} /></label>
-            </div>);
-            if (goal.amount) goalItems.push(<div className="MenuWHField MenuAreaEDLabel">
-                 <label htmlFor="input">Anti?<input type="checkbox"
-                    className={"MenuWHFieldCheckbox"} onChange={(e) => changeGoalAttribute(i, "anti", e.target.checked, true)}
-                    min={1} max={Infinity} step={1} checked={goal.anti} style={{
-                        width: "15%"
-                    }} /></label>
-                <label htmlFor="quantity">Amount<input type="number"
-                    className={"MenuWHFieldNum"} onChange={(e) => changeGoalAttribute(i, "amount", e.target.value)}
-                    min={1} max={Infinity} step={1} value={goal.amount} disabled={goal.optional && !goal.option} style={{
-                        width: "25%"
-                    }} /></label>
-            </div>);
-            items.push(
-                <div key={i + 1} className="MenuGoal" style={{
-                    height: ((goal.optional ? 18 : (goal.amount ? 10 : 5)) + 7) + "%"
+        let goalTypes = [];
+        let goalItems = [];
+        for (let j = 0; j < gt.length; j++)
+        goalTypes.push(<option key={j} style={{
+            backgroundColor: getC(gt[j]),
+            color: "black"
+        }}>{gt[j]}</option>)
+
+        const isMoon = moon !== undefined;
+
+        goalItems.push(<button className="MenuGoalRemove" onClick={() => removeGoal(i, moon)}>×</button>)
+        goalItems.push(<label className="MenuAreaLabel">Type
+            <select
+                className="MenuAreaField" onChange={(e) => isMoon ? changeMoonGoalAttribute(moon, i, "type", e.target.value) : changeGoalAttribute(i, "type", e.target.value)}
+                value={goal.type} style={{
+                    width: "62%"
                 }}>
-                    {goalItems}
-                </div>);
+                {goalTypes}
+            </select>
+        </label>
+        )
+
+        const scoreNight = goal.type === "Score" && props.nightMode;
+        let tooltip = tooltips.goals[goal.type.toLowerCase()];
+        if (scoreNight) {
+            tooltip = tooltips.goals.night_score;
+        }
+
+        goalItems.push(<div style={{ fontSize: "12px", wordSpacing: "2px", lineHeight: 1 }}>{tooltip}</div>)
+        if (goal.optional) goalItems.push(<div>
+            <label htmlFor="input" className={"MenuAreaLabel"}>Specific?<input type="checkbox"
+                className={"MenuAreaField"} onChange={(e) => isMoon ? changeMoonGoalAttribute(moon, i, "option", e.target.value, true) : changeGoalAttribute(i, "option", e.target.checked, true)}
+                min={1} max={Infinity} step={1} checked={goal.option} style={{
+                    width: "40%"
+                }} /></label>
+        </div>);
+
+        if (goal.amount) goalItems.push(<div className="MenuWHField MenuAreaEDLabel">
+            <label htmlFor="input">Anti?<input type="checkbox"
+                className={"MenuWHFieldCheckbox"} onChange={(e) => isMoon ? changeMoonGoalAttribute(moon, i, "anti", e.target.checked, true) : changeGoalAttribute(i, "anti", e.target.checked, true)}
+                min={1} max={Infinity} step={1} checked={goal.anti} style={{
+                    width: "15%"
+                }} /></label>
+            <label htmlFor="quantity">Amount<input type="number"
+                className={"MenuWHFieldNum"} onChange={(e) => isMoon ? changeMoonGoalAttribute(moon, i, "amount", e.target.value) : changeGoalAttribute(i, "amount", e.target.value)}
+                min={1} max={Infinity} step={1} value={goal.amount} disabled={goal.optional && !goal.option} style={{
+                    width: scoreNight ? "70%" : "25%"
+                }} /></label>
+        </div>);
+
+        return (
+            <div key={(isMoon ? (moon * 1000 + 1000) : 0) + i + 1} className="MenuGoal" style={{
+                height: ((goal.optional ? 18 : (goal.amount ? 10 : 5)) + 7) + "%"
+            }}>
+                {goalItems}
+            </div>
+        );
+    }
+
+    function makeGoals() {
+        const go = props.nightMode ? props.mg : goals;
+        let items = [];
+        if (!props.nightMode) {
+            // Make an Add Goal button.
+            items.push(<button id="MenuGoalAdd" onClick={addGoal} key={0}>
+                Add Goal
+            </button>)
+            // Render the goals.
+            for (let i = 0; i < go.length; i++) {
+                let goal = go[i];
+                items.push(makeGoal(goal, i));
+            }
+        } else {
+            // Add goals for each of the moons.
+            for (let m = 0; m < 3; m++) {
+                items.push(
+                    <div>
+                        <strong style={{ color: levelThings.moonColours[m] }}>
+                            {levelThings.moon}
+                        </strong>
+                        {makeSubSec(" Moon #" + (m+1))}
+                    </div>
+                )
+                //
+                items.push(<button id="MenuGoalAdd" onClick={ () => addGoal(m) } key={m}>
+                    Add Goal
+                </button>)
+                //
+                for (let i = 0; i < go[m].length; i++) {
+                    let goal = go[m][i];
+                    items.push(makeGoal(goal, i, m));
+                }
+            }
         }
         return items;
     }
@@ -481,30 +556,47 @@ function Menu(props) {
     function saveLevel() {
         // Make basic metadata.
         let data = {
+            night: props.nightMode ? true : undefined,
             moves: props.m.timed ? undefined : props.m.timemove,
             time: props.m.timed ? props.m.timemove : undefined,
-            targets: [props.m.star1, props.m.star2, props.m.star3],
+            targets: props.nightMode ? undefined : [props.m.star1, props.m.star2, props.m.star3],
             width: props.m.width === 9 ? undefined : props.m.width,
             height: props.m.height === 9 ? undefined : props.m.height,
             colours: props.m.colours,
             black: props.m.black,
-            hard: Math.max(0, levelThings.hardTypes.indexOf(props.m.hard)),
-            immediateShowdown: !props.m.immediateShowdown ? false : undefined,
+            hard: props.nightMode ? undefined : Math.max(0, levelThings.hardTypes.indexOf(props.m.hard)),
+            immediateShowdown: !props.nightMode && !props.m.immediateShowdown ? false : undefined,
             increaseColours: props.m.increaseColours ? true : undefined,
-            seed: props.m.seedEnabled ? props.m.seed : undefined
+            seed: props.m.seedEnabled ? props.m.seed : undefined,
+            moonGoals: [[], [], []]
         }
         // Goals!
-        let goals = props.g
-        let dataGoals = goals.map(o=>{
-            const obj = {
-                type: o.type.slice(-3) === "(L)" ? o.type.replace(/ /g, '_').toLowerCase().slice(0, -4) :
-                        o.type.replace(/ /g, '_').toLowerCase(),
-                amount: (o.optional ? (o.option ? Number(o.amount) : null) : Number(o.amount) || null)
+        if (props.nightMode) {
+            for (let i = 0; i < 3; i++) {
+                let dataGoals = props.mg[i].map(o=>{
+                    const obj = {
+                        type: o.type.slice(-3) === "(L)" ? o.type.replace(/ /g, '_').toLowerCase().slice(0, -4) :
+                                o.type.replace(/ /g, '_').toLowerCase(),
+                        amount: (o.optional ? (o.option ? Number(o.amount) : null) : Number(o.amount) || null)
+                    }
+                    if (o.anti) obj.anti = true;
+                    return obj;
+                });
+                data.moonGoals[i] = dataGoals;
             }
-            if (o.anti) obj.anti = true;
-            return obj;
-        });
-        data.goals = dataGoals;
+        } else {
+            let goals = props.g
+            let dataGoals = goals.map(o=>{
+                const obj = {
+                    type: o.type.slice(-3) === "(L)" ? o.type.replace(/ /g, '_').toLowerCase().slice(0, -4) :
+                            o.type.replace(/ /g, '_').toLowerCase(),
+                    amount: (o.optional ? (o.option ? Number(o.amount) : null) : Number(o.amount) || null)
+                }
+                if (o.anti) obj.anti = true;
+                return obj;
+            });
+            data.goals = dataGoals;
+        }
         // Tiles.
         let tilemap = [];
         for (let y = 0; y < props.m.height; y++) {
@@ -591,10 +683,16 @@ function Menu(props) {
             data.gravitationPaths = gravitationData.paths;
         }
         // Allow the user to save!
-        window.API.fileSystem.saveLevel(props.l, props.dir, data).then(() => {})
-        if (!props.lns.some(o => o[0] === props.l)) {
-            props.selns(props.elns.concat([[props.l, data]]));
-            props.slns(props.lns.concat([[props.l, data]]))
+        window.API.fileSystem.saveLevel(props.l, props.dir[props.nightMode ? 1 : 0], data).then(() => {})
+        let from = props.nightMode ? props.nlns : props.lns;
+        if (!from.some(o => o[0] === props.l)) {
+            if (props.nightMode) {
+                props.snelns(props.nelns.concat([[props.l, data]]));
+                props.snlns(props.nlns.concat([[props.l, data]]));
+            } else {
+                props.selns(props.elns.concat([[props.l, data]]));
+                props.slns(props.lns.concat([[props.l, data]]));
+            }
         }
     }
     
@@ -878,7 +976,7 @@ function Menu(props) {
         }
         switch (currentTab) {
             case "goals":
-                return [makeSec("Goals"), makeGoals(goals)];
+                return [makeSec("Goals"), makeGoals()];
             case "cannons":
                 return [makeSec("Cannons"), makeCannons()];
             case "teleporters":
@@ -924,13 +1022,13 @@ function Menu(props) {
                         outlineStyled: ["black", "black", "white", "white", "white"], width: 56, code: "hard"
                     }),
 
-                    makeField(<><strong style={{ color: levelThings.starColours[0] }}>★ </strong>Target</>, "num", 
+                    makeField(<><strong style={{ color: levelThings.starColours[0] }}>{levelThings.symbol(props.nightMode)} </strong>Target</>, "num", 
                         { min: 1, max: levelThings.maxScoreTarget, step: 1, value: 10000, width: 50, code: "star1" }
                     ),
-                    makeField(<><strong style={{ color: levelThings.starColours[1] }}>★ </strong>Target</>, "num",
+                    makeField(<><strong style={{ color: levelThings.starColours[1] }}>{levelThings.symbol(props.nightMode)} </strong>Target</>, "num",
                         { min: 1, max: levelThings.maxScoreTarget, step: 1, value: 20000, width: 50, code: "star2" }
                     ),
-                    makeField(<><strong style={{ color: levelThings.starColours[2] }}>★ </strong>Target</>, "num",
+                    makeField(<><strong style={{ color: levelThings.starColours[2] }}>{levelThings.symbol(props.nightMode)} </strong>Target</>, "num",
                         { min: 1, max: levelThings.maxScoreTarget, step: 1, value: 30000, width: 50, code: "star3"}
                     ),
 
@@ -945,7 +1043,7 @@ function Menu(props) {
             <b>Menu</b>
             <br />
             {(!props.l) ? "Select a level!" : <>
-                <div>{"Level " + props.l}</div>
+                <div>{(props.nightMode ? (levelThings.moon + " ") : "") + "Level " + props.l}</div>
                 <button id="MenuGoalAdd" onClick={saveLevel} key={0}>
                     Save Level
                 </button>
