@@ -570,7 +570,7 @@ function Menu(props) {
             immediateShowdown: !props.nightMode && !props.m.immediateShowdown ? false : undefined,
             increaseColours: props.m.increaseColours ? true : undefined,
             seed: props.m.seedEnabled ? props.m.seed : undefined,
-            moonGoals: [[], [], []]
+            moonGoals: props.nightMode ? [[], [], []] : undefined
         }
         // Goals!
         if (props.nightMode) {
