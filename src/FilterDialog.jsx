@@ -177,13 +177,17 @@ function FilterDialog(props) {
 
         // Score Targets
         if (!props.nightMode)
-        for (let i = 1; i <= 3; i++) {
+            for (let i = 1; i <= 3; i++) {
             filters.push(
                 makeFilter(
                     <>
                         <b style={{ color: levelThings.starColours[i-1] }} >{levelThings.symbol(props.nightMode)} </b>
                         <b>Target</b></>
                 , "number", "star" + i, { min: 1, max: levelThings.maxScoreTarget }, true)
+            );
+        } else {
+            filters.push(
+                makeFilter("Max Bar Score", "number", "maxBarScore", { min: 1, max: levelThings.maxScoreTarget })
             );
         }
 

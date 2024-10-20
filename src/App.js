@@ -95,6 +95,8 @@ function App() {
 		star2: makeDefaultNumberFilter(1, 1000000000),
 		star3: makeDefaultNumberFilter(1, 1000000000),
 
+		maxBarScore: makeDefaultNumberFilter(1, 1000000000),
+
 		increaseColours: makeDefaultCheckboxFilter(false),
 		immediateShowdown: makeDefaultCheckboxFilter(true),
 	}
@@ -149,14 +151,14 @@ function App() {
 					if (nightMode && !data.night) {
 						setAlertContent({
 							title: "Alert",
-							content: "It looks like you are trying to upload a folder containing normal levels as the night level folder. Therefore, the upload has been stopped."
+							content: "It looks like you are trying to upload a folder containing normal levels as the night level folder. Therefore, the upload has been stopped to prevent errors."
 						})
 						setAlertActive(true);
 						stop = true;
 					} else if (!nightMode && data.night) {
 						setAlertContent({
 							title: "Alert",
-							content: "It looks like you are trying to upload a folder containing night levels as the normal level folder. Therefore, the upload has been stopped."
+							content: "It looks like you are trying to upload a folder containing night levels as the normal level folder. Therefore, the upload has been stopped to prevent errors."
 						})
 						setAlertActive(true);
 						stop = true;

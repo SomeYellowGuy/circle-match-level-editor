@@ -131,8 +131,9 @@ function Menu(props) {
             disabled = menuState.preferredColours.enabled;
         }
         if (!specialData && p.code === "seed") disabled = !menuState.seedEnabled;
-        if ((p.code === "hard" || p.code.startsWith("star") || p.code === "immediateShowdown") && props.nightMode) {
-            // No difficulty setting in night levels.
+        if (p.night && !props.nightMode) return;
+        if ((p.code === "hard" || p.code.startsWith("star") || p.code === "immediateShowdown") && (props.nightMode && !p.night)) {
+            // No difficulty setting  or score targets in night levels.
             return;
         }
         switch (type) {
@@ -142,7 +143,7 @@ function Menu(props) {
                     <label htmlFor="input" className="MenuAreaLabel">{name}<input type="checkbox" className="MenuAreaField"
                         onChange={(e) => handleChange(p.code, e.target.checked, true, specialData)} checked={data} disabled={disabled} /></label>
                 </div>);
-                return <div className="MenuArea" key={p.code}>{items}</div>;
+                return <div className="MenuArea" key={p.code + (p.night ? "night" : "")}>{items}</div>;
             case "num":
                 // Extra params: min, max, step, code, width
                 items.push(<div>
@@ -153,7 +154,7 @@ function Menu(props) {
                             width: p.width + "%"
                         }} /></label>
                 </div>);
-                return <div className="MenuArea" key={p.code}>{items}</div>;
+                return <div className="MenuArea" key={p.code + (p.night ? "night" : "")}>{items}</div>;
             case "dropdown":
                 // Extra params: options, styled
                 let options = [];
@@ -178,7 +179,7 @@ function Menu(props) {
                         </select>
                     </label>
                 </div>);
-                return <div className="MenuArea" key={p.code}>{items}</div>;
+                return <div className="MenuArea" key={p.code + (p.night ? "night" : "")}>{items}</div>;
         }
     }
 
@@ -208,7 +209,7 @@ function Menu(props) {
             let oldGoals = [...props.mg];
             oldGoals[moon].push({
                 type: "Score",
-                amount: 10000
+                amount: 100
             });
             props.smg(oldGoals)
         } else {
@@ -560,6 +561,7 @@ function Menu(props) {
             moves: props.m.timed ? undefined : props.m.timemove,
             time: props.m.timed ? props.m.timemove : undefined,
             targets: props.nightMode ? undefined : [props.m.star1, props.m.star2, props.m.star3],
+            maxBarScore: props.nightMode ? props.m.star1 : undefined,
             width: props.m.width === 9 ? undefined : props.m.width,
             height: props.m.height === 9 ? undefined : props.m.height,
             colours: props.m.colours,
@@ -1030,6 +1032,10 @@ function Menu(props) {
                     ),
                     makeField(<><strong style={{ color: levelThings.starColours[2] }}>{levelThings.symbol(props.nightMode)} </strong>Target</>, "num",
                         { min: 1, max: levelThings.maxScoreTarget, step: 1, value: 30000, width: 50, code: "star3"}
+                    ),
+
+                    makeField("Max Bar Score", "num", 
+                        { min: 1, max: levelThings.maxScoreTarget, step: 1, value: 10000, width: 50, code: "star1", night: true }
                     ),
 
                     makeField("Increase colo(u)rs?", "checkbox", { code: "increaseColours", dc: false }),

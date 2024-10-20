@@ -64,7 +64,8 @@ function Levels(props) {
             black: data.black || false,
             increaseColours: data.increaseColours ? true : false,
             immediateShowdown: !data.immediateShowdown ? false : true,
-            night: data.night ?? false
+            night: data.night ?? false,
+            maxBarScore: data.maxBarScore || undefined
         }
         if (data.moves) d.moves = data.moves;
         else if (data.time) d.time = data.time;
@@ -140,7 +141,7 @@ function Levels(props) {
                 width: d.width || 9,
                 height: d.height || 9,
                 hard: levelThings.hardTypes[d.hard || 0],
-                star1: props.nightMode ? undefined : d.targets[0],
+                star1: props.nightMode ? d.maxBarScore : d.targets[0],
                 star2: props.nightMode ? undefined : d.targets[1],
                 star3: props.nightMode ? undefined : d.targets[2],
                 increaseColours: !!d.increaseColours,
@@ -345,7 +346,7 @@ function Levels(props) {
             }
             <button className="LevelsButton"  disabled={(props.nightMode) ? (!folderOpened[1]) : (!folderOpened[0])} onClick={()=>{
                 let newLevel = -Infinity;
-                if (from().length > 0) newLevel = Math.max(from().map(o => o[0]))+1;
+                if (from().length > 0) newLevel = Math.max(...(from().map(o => Number(o[0])))) + 1;
                 else if ((props.nightMode) ? (folderOpened[1]) : (folderOpened[0])) newLevel = 1;
 
                 if (newLevel === -Infinity) return;
@@ -358,6 +359,7 @@ function Levels(props) {
                 props.st(t);
                 props.steles([]);
                 props.sg([]);
+                props.smg([[],[],[]]);
                 props.setcd({ enabled: false, cameras: [], requirements: [], width: 9, height: 9, showBackwards: true});
                 props.sc([]);
                 props.sm({
