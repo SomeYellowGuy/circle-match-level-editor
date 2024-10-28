@@ -1050,6 +1050,7 @@ function Menu(props) {
             <br />
             {(!props.l) ? "Select a level!" : <>
                 <div>{(props.nightMode ? (levelThings.moon + " ") : "") + "Level " + props.l}</div>
+                <div>{(props.nightMode ? ("Minimum Level: " + Math.max(props.l * 5, 100)) : "")}</div>
                 <button id="MenuGoalAdd" onClick={saveLevel} key={0}>
                     Save Level
                 </button>
