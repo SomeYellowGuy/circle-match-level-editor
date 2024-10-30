@@ -57,15 +57,24 @@ function Levels(props) {
     function soft(data) {
         let d = {
             targets: data.targets,
+
             hard: data.hard || 0,
             colours: data.colours,
             width: data.width || 9,
             height: data.height || 9,
             black: data.black || false,
+
             increaseColours: data.increaseColours ? true : false,
             immediateShowdown: !data.immediateShowdown ? false : true,
+
             night: data.night ?? false,
-            maxBarScore: data.maxBarScore || undefined
+            maxBarScore: data.maxBarScore || undefined,
+
+            hasCamera: data.camera?.enabled ?? false,
+            hasVaults: !!data.vaults && data.vaults.length > 0,
+            hasCustomGravitation: data.gravitationPaths?.length > 0,
+            hasPreferredColours: !!data.preferredColours ?? false,
+            hasCustomSpawnConfigs: !!data.spawning ?? false
         }
         if (data.moves) d.moves = data.moves;
         else if (data.time) d.time = data.time;
@@ -200,6 +209,23 @@ function Levels(props) {
                 props.sg(go);
             }
 
+            // Load vaults.
+            if (d.vaults) {
+                let vaults = [];
+                for (let vaultData of d.vaults) {
+                    vaults.push({
+                        from: vaultData[0],
+                        to: vaultData[1],
+                        type: vaultData[2].replace(/_/g, ' ').split(" ").map(o=>o[0].toUpperCase()+o.slice(1)).join(" "),
+                        colour: Object.keys(levelThings.vaultColours)[vaultData[3]],
+                        health: vaultData[4]
+                    })
+                }
+                props.setVaults(vaults);
+            } else {
+                props.setVaults([]);
+            }
+
             let editorTiles = [];
             let tiles = d.tilemap.map(o=>o.split(","));
             let tc = [];
@@ -254,7 +280,7 @@ function Levels(props) {
             for (let i = 0; i < tc.length; i++) {
                 if (tc[i][0] && tc[i][1]) teleporters.push({from: [...tc[i][0]].map(o=>o+1), to: [...tc[i][1]].map(o=>o+1)})
             }
-            props.steles(teleporters);
+            props.setTeleporters(teleporters);
             // Load spawning.
             let spawnData = [];
             if (d.spawning)
@@ -344,7 +370,16 @@ function Levels(props) {
                 </>
                 )
             }
-            <button className="LevelsButton"  disabled={(props.nightMode) ? (!folderOpened[1]) : (!folderOpened[0])} onClick={()=>{
+            <button className="LevelsButton"  disabled={((props.nightMode) ? (!folderOpened[1]) : (!folderOpened[0]))} onClick={()=>{
+                if (!props.isDefaultFilter()) {
+                    // Some filter is present. Give an alert.
+                    props.setAlertContent({
+                        title: "Cannot Create Level",
+                        content: "You cannot create a level with filters on.\nReset your filters first."
+                    })
+                    props.setAlertActive(true);
+                    return;
+                }
                 let newLevel = -Infinity;
                 if (from().length > 0) newLevel = Math.max(...(from().map(o => Number(o[0])))) + 1;
                 else if ((props.nightMode) ? (folderOpened[1]) : (folderOpened[0])) newLevel = 1;
@@ -357,7 +392,8 @@ function Levels(props) {
                     t.push(l)
                 }
                 props.st(t);
-                props.steles([]);
+                props.setTeleporters([]);
+                props.setVaults([]);
                 props.sg([]);
                 props.smg([[],[],[]]);
                 props.setcd({ enabled: false, cameras: [], requirements: [], width: 9, height: 9, showBackwards: true});

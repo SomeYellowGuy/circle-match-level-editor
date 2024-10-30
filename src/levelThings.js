@@ -15,10 +15,42 @@ const levelThings = {
     `button,paint,ice`.split(","),
 
     /**
-     * Goals that are NOT requirements and cannot be used as a requirement.
+     * Goals that are NOT camera requirements and cannot be used as such.
      */
     notReqs:
     `Score,Rainbow Circle,Striped Circle,Horizontal Circle,Candy Beads`.split(","),
+    
+    /**
+     * Types of vaults.
+     */
+    vaultTypes:
+    {
+        "Striped Circle": "P-",
+        "Radial Circle": "PO",
+        "Red Circle": "*4",
+        "Orange Circle": "*2",
+        "Yellow Circle": "*5",
+        "Green Circle": "*1",
+        "Blue Circle": "*0",
+        "Purple Circle": "*3",
+        "Black Circle": "*B",
+        "Jawbreaker": "J1"
+    },
+
+    /**
+     * All colo(u)rs of vaults.
+     */
+    vaultColours: {
+        "White": "#ffffff",
+        "Red": "#ff0000",
+        "Orange": "#ff8800",
+        "Yellow": "#ffff00",
+        "Green": "#00ee00",
+        "Blue": "#0399fc",
+        "Purple": "#a503fc",
+        "Pink": "#f707bf",
+        "Black": "#010101"
+    },
 
     /**
      * All possible types of a cannon of a level.
@@ -55,13 +87,13 @@ const levelThings = {
      */
     customSpawns:
     Array.from({length: 9}, ((v, k) => k + 1)) // Create an array like: [1, 2, 3 ... 9]
-                .map((o) => "S" + o),                  // Add S to each of them.
+                .map((o) => "S" + o),          // Add S to each of them.
 
     /**
      * Tells all level tabs.
     */
     levelTabs:
-    `Properties,Goals,Cannons,Teleporters,Camera,Spawning,Miscellanous,Gravitation`.split(","),
+    `Properties,Goals,Cannons,Teleporters,Camera,Spawning,Miscellanous,Gravitation,Vaults`.split(","),
 
     /**
      * Tells all colors.

@@ -40,8 +40,6 @@ function Menu(props) {
     let [currentTab, setCurrentTab] = useState("properties");
 
     const [goals, setGoals] = useState([]);
-    const [moonGoals, setMoonGoals] = useState([]);
-    const [teleporters, setTeles] = useState([]);
     const [cannons, setCannons] = useState([]);
 
     function handleChange(c, v, isCheckbox, specialData) {
@@ -112,13 +110,13 @@ function Menu(props) {
         </div>
     }
 
-    function makeInfo(info, isSmall, isBig) {
+    function makeInfo(info, isSmall, isBig, isVeryBig) {
         let list = [];
         let i = 0;
         for (const line of info.split("\n")) {
             list.push(<li key={i++}>{line}</li>);
         }
-        return (<div className={isBig ? "MenuInfoBig" : (isSmall ? "MenuInfoSmall" : "MenuInfo")}>
+        return (<div className={isVeryBig ? "MenuInfoVeryBig" : (isBig ? "MenuInfoBig" : (isSmall ? "MenuInfoSmall" : "MenuInfo"))}>
             <ul>{list}</ul>
         </div>);
     }
@@ -222,19 +220,18 @@ function Menu(props) {
         }
     }
 
-    function addTele() {
+    function addTeleporter() {
         // Create a teleporter.
         // There is a maximum of 499 pairs of teleporters.
         // T001, T002 - T003, T004 - ... - T997, T998
-        if (teleporters.length >= 499) return;
-        let oldTeles = [...teleporters];
-        oldTeles.push({
+        if (props.teleporters.length >= 499) return;
+        let oldTeleporters = [...props.teleporters];
+        oldTeleporters.push({
             from: [1, 1],
             to: [1, 1]
         });
-        props.setsct(String(Number(oldTeles.length)));
-        setTeles(oldTeles);
-        props.steles(oldTeles);
+        props.setsct(String(Number(oldTeleporters.length)));
+        props.setTeleporters(oldTeleporters);
     }
 
     function addPath() {
@@ -246,6 +243,20 @@ function Menu(props) {
         setGravitationData(newPaths);
         props.setgd(newPaths);
         props.setscpp(1);
+    }
+
+    function addVault() {
+        // Create a vault.
+        let oldVaults = [...props.vaults];
+        oldVaults.push({
+            from: [0, 0],
+            to: [menuState.width-1, menuState.height-1],
+            type: "Striped Circle",
+            colour: "Red",
+            health: 5
+        });
+        props.setscv(String(Number(oldVaults.length)));
+        props.setVaults(oldVaults);
     }
 
     function removePath(i) {
@@ -285,12 +296,18 @@ function Menu(props) {
         }
     }
 
-    function removeTele(i) {
+    function removeTeleporter(i) {
         // Remove the teleporters.
-        let oldTeles = [...teleporters];
-        oldTeles.splice(i, 1);
-        setTeles(oldTeles)
-        props.steles(oldTeles);
+        let oldTeleporters = [...props.teleporters];
+        oldTeleporters.splice(i, 1);
+        props.setTeleporters(oldTeleporters);
+    }
+
+    function removeVault(i) {
+        // Remove the vault.
+        let oldVaults = [...props.vaults];
+        oldVaults.splice(i, 1);
+        props.setVaults(oldVaults);
     }
 
     function removeCannon(i) {
@@ -352,11 +369,11 @@ function Menu(props) {
     function makeTeleporters() {
         let items = [];
         // Make an Add button.
-        items.push(<button id="MenuGoalAdd" onClick={addTele} key={0}>
+        items.push(<button id="MenuGoalAdd" onClick={addTeleporter} key={0}>
             Add Teleporters
         </button>)
         items.push(<button id="MenuGoalAdd" onClick={() => {
-            removeTele(props.sct - 1)
+            removeTeleporter(props.sct - 1)
         }} key={1}>
             Delete Selected Teleporters
         </button>)
@@ -367,7 +384,7 @@ function Menu(props) {
                         className={"MenuTele"} onChange={(e) => {
                             props.setsct(e.target.value);
                         }}
-                        min={0} max={teleporters.length} step={1} value={props.sct} style={{
+                        min={0} max={props.teleporters.length} step={1} value={props.sct} style={{
                             width: "80%"
                         }} />                               </label>
         </div>);
@@ -379,6 +396,96 @@ function Menu(props) {
         ))
 
         return items;
+    }
+
+    function makeVaults() {
+        let items = [];
+        // Make an Add button.
+        items.push(<button id="MenuGoalAdd" onClick={addVault} key={0}>
+            Add Vaults
+        </button>)
+        items.push(<button id="MenuGoalAdd" onClick={() => {
+            removeVault(props.scv - 1)
+        }} key={1}>
+            Delete Selected Vault
+        </button>)
+
+        items.push(<div>
+            <label htmlFor="quantity" key={2} className={"MenuAreaLabel"}>Selected ID
+                    <input type="number"
+                        className={"MenuTele"} onChange={(e) => {
+                            props.setscv(e.target.value);
+                        }}
+                        min={0} max={props.vaults.length} step={1} value={props.scv} style={{
+                            width: "80%"
+                        }} />                               </label>
+        </div>);
+
+        let vaults = [];
+        let options = [[],[]];
+
+        for (let type in levelThings.vaultTypes) {
+            options[0].push(<option key={type} style={{
+                backgroundColor: "rgb(0,50,0,100)"
+            }}>{type}</option>)
+        }
+        for (let colour in levelThings.vaultColours) {
+            const val = levelThings.vaultColours[colour];
+            options[1].push(<option key={colour} style={{
+                backgroundColor: val,
+                color: (colour === "White" || colour === "Yellow" ? "black" : null)
+            }}>{colour}</option>)
+        }
+
+        for (let i = 0; i < props.vaults.length; i++) {
+            const vaultData = props.vaults[i];
+            let vaultContent = [];
+            vaultContent.push(makeSubSec("Vault #" + (i+1)));
+            vaultContent.push(<label className="MenuAreaLabel" key={2}>Type
+                <select
+                    className="MenuAreaField" onChange={(e) => changeVaultAttribute(i, "type", e.target.value)}
+                    value={vaultData.type} style={{
+                        width: "55%"
+                    }}>
+                    {options[0]}
+                </select>
+            </label>)
+            vaultContent.push(<label className="MenuAreaLabel" key={2}>Colo(u)r
+                <select
+                    className="MenuAreaField" onChange={(e) => changeVaultAttribute(i, "colour", e.target.value)}
+                    value={vaultData.colour} style={{
+                        width: "55%"
+                    }}>
+                    {options[1]}
+                </select>
+                </label>
+            )
+            vaultContent.push(<label className="MenuAreaLabel" key={2}>Health
+                <input type="number"
+                    className={"MenuAreaField"} onChange={(e) => changeVaultAttribute(i, "health", e.target.value)}
+                    min={1} max={Infinity} step={1} value={vaultData.health} style={{
+                        width: "55%"
+                    }} />
+            </label>)
+            //
+            vaults.push(vaultContent);
+        }
+
+        items.push(vaults);
+        items.push(makeInfo(
+            `On this tab, perform these to:
+            Left click: place a new vault at top left corner
+            Right click: set bottom-right corner of vault`,
+        false, true, true));
+
+        return items;
+    }
+
+    function changeVaultAttribute(n, prop, to) {
+        let g = [...props.vaults];
+        if (!g[n]) return;
+        g[n][prop] = to;
+        props.setVaults(g);
     }
 
     function makeGoal(goal, i, moon) {
@@ -545,16 +652,24 @@ function Menu(props) {
         setMS(props.m)
         setGoals(props.g)
         setR(r => r + 1);
-        setTeles(props.teles);
         setCannons(props.c);
         props.setmct(currentTab);
         setCameraData(props.cd);
         setSpawnData(props.spd);
         setGravitationData(props.gd);
         return () => { };
-    }, [props.l, props.cd, props.spd, menuState, currentTab, props.m, props.g, props.teles, props.c, props.gd]);
+    }, [props.l, props.cd, props.spd, menuState, currentTab, props.m, props.g, props.teleporters, props.c, props.gd]);
 
     function saveLevel() {
+        if (!props.isDefaultFilter()) {
+            // Some filter is present. Give an alert.
+            props.setAlertContent({
+                title: "Cannot Save Level",
+                content: "You cannot save a level with filters on.\nReset your filters first."
+            })
+            props.setAlertActive(true);
+            return;
+        }
         // Make basic metadata.
         let data = {
             night: props.nightMode ? true : undefined,
@@ -611,8 +726,8 @@ function Menu(props) {
                 if (!tile.some(o=>conflictingTiles[0].includes(o) ||
                     o === "-O") && tile.length > 0) 
                             o += "-O";
-                for (let te in teleporters) {
-                    let t = teleporters[te]
+                for (let te in props.teleporters) {
+                    let t = props.teleporters[te]
                     if (t.from[0]===x+1&&t.from[1]===y+1) {
                         o += "T"+"000".slice(String(te*2+1).length)+String(te*2+1)
                     }
@@ -683,6 +798,17 @@ function Menu(props) {
         // Gravitation!
         if (gravitationData.custom) {
             data.gravitationPaths = gravitationData.paths;
+        }
+        // Vaults!
+        if (props.vaults.length > 0) {
+            data.vaults = [];
+            for (let vault of props.vaults) {
+                data.vaults.push([vault.from, vault.to,
+                    vault.type.replace(/ /g, '_').toLowerCase(),
+                    Object.keys(levelThings.vaultColours).indexOf(vault.colour),
+                    vault.health
+                ]);
+            }
         }
         // Allow the user to save!
         window.API.fileSystem.saveLevel(props.l, props.dir[props.nightMode ? 1 : 0], data).then(() => {})
@@ -972,9 +1098,11 @@ function Menu(props) {
     }
 
     function getFilteredTab() {
-        const notTeleporters = currentTab !== "teleporters";
-        if (notTeleporters) {
+        if (currentTab !== "teleporters") {
             props.setsct(0);
+        }
+        if (currentTab !== "vaults") {
+            props.setscv(0);
         }
         switch (currentTab) {
             case "goals":
@@ -1010,6 +1138,11 @@ function Menu(props) {
                     Right click: change the position of a selected point`  
                     , false, true)
                 ];
+            case "vaults":
+                return [
+                    makeSec("Vaults"),
+                    makeVaults()
+                ]
             // Default: Properties.
             default:
                 return [
@@ -1050,7 +1183,7 @@ function Menu(props) {
             <br />
             {(!props.l) ? "Select a level!" : <>
                 <div>{(props.nightMode ? (levelThings.moon + " ") : "") + "Level " + props.l}</div>
-                <div>{(props.nightMode ? ("Minimum Level: " + Math.max(props.l * 5, 100)) : "")}</div>
+                <div style={{fontSize:"16px"}}>{(props.nightMode ? ("Minimum Reached Level: " + Math.max(props.l * 5 + 1, 101)) : "")}</div>
                 <button id="MenuGoalAdd" onClick={saveLevel} key={0}>
                     Save Level
                 </button>

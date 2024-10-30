@@ -20,6 +20,10 @@ select {
 	font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
+select:active {
+	background-color: #3e6800;
+}
+
 input[type='checkbox']:checked {
 	accent-color: #728a5b;
 }
@@ -430,9 +434,9 @@ button:disabled {
 
 .MenuTab {
 	height: 25px;
-	width: 50%;
+	width: 33.333%;
 	margin: 0;
-	font-size: 13px;
+	font-size: 12px;
 	font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 	border: 0;
 	float: left;
@@ -466,6 +470,14 @@ button:disabled {
 .MenuInfoBig {
 	background-color: rgba(0,0,0,0.15);
 	margin-top: 80px !important;
+	border-radius: 9px;
+	width: 90%;
+	margin: 0 auto
+}
+
+.MenuInfoVeryBig {
+	background-color: rgba(0,0,0,0.15);
+	margin-top: 120px !important;
 	border-radius: 9px;
 	width: 90%;
 	margin: 0 auto
@@ -626,7 +638,7 @@ input {
 	margin-left: 15px;
 }
 
-.FilterDialog label {
+.FilterDialog label, .FilterDialog h3 {
 	font-size: 20px;
 	font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 	margin: 15px;

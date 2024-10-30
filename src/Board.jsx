@@ -2,10 +2,11 @@ import { useRef, useEffect, useState } from "react";
 import at from "./aliasTiles.js";
 import conflictingTiles from "./conflicts.js";
 import tilesSource from "./tiles.png";
+import vaultTilesSource from "./vault_states.png";
 import levelThings from "./levelThings.js";
 
 function Board(props) {
-    const boardRef = useRef(null)
+    const boardRef = useRef(null);
     const canvas = boardRef.current;
 
     /** The tile size of a tile in the board canvas. */
@@ -22,6 +23,7 @@ function Board(props) {
     }
     const [tiles, setTiles] = useState(t);
     const [src, setSRC] = useState(null);
+    const [vaultSrc, setVaultSRC] = useState(null);
 
     const [screenSize, setScreenSize] = useState({
         width: window.innerWidth,
@@ -44,14 +46,33 @@ function Board(props) {
         };
     }, []);
 
-    function changeTeleAttribute(n, attrib, to, c) {
-        let g = [...props.teles];
+    function changeTeleAttribute(n, attrib, to) {
+        let g = [...props.teleporters];
         if (!g[n]) return;
         let prop = attrib.slice(0,-1);
         let t = g[n][prop];
         t[Number(attrib[attrib.length-1])] = Number(to);
         g[n][prop] = t;
-        props.steles(g);
+        props.setTeleporters(g);
+    }
+
+    function changeVaultAttribute(n, attrib, to) {
+        let g = [...props.vaults];
+        if (!g[n]) return;
+        let prop = attrib.slice(0,-1);
+        let t = g[n][prop];
+        t[Number(attrib[attrib.length-1])] = Number(to);
+        g[n][prop] = t;
+        if (prop === "from" || prop === "to")
+        for (let i = 0; i < 2; i++) {
+            if (props.vaults[n].from[i] > props.vaults[n].to[i]) {
+                // The to value is less than the from value. Swap them
+                let temp = props.vaults[n].from[i];
+                props.vaults[n].from[i] = props.vaults[n].to[i];
+                props.vaults[n].to[i] = temp;
+            }
+        }
+        props.setVaults(g);
     }
 
     function isStraight(p1, p2) {
@@ -90,9 +111,8 @@ function Board(props) {
         let x = e.clientX - rect.left;
         let y = e.clientY - rect.top;
 
-        const tileSize = TILE_SIZE;
-        let tileX = Math.floor(x / tileSize);
-        let tileY = Math.floor(y / tileSize);
+        let tileX = Math.floor(x / TILE_SIZE);
+        let tileY = Math.floor(y / TILE_SIZE);
         let oldTiles = tiles;
         if (tileX < props.m.width && tileY < props.m.height && tileX >= 0 && tileY >= 0) {
             if (props.ts && props.ts[0] === tileX && props.ts[1] === tileY) props.sts(null);
@@ -111,6 +131,20 @@ function Board(props) {
                         // Right click
                         changeTeleAttribute(props.sct - 1, "to0", tileX + 1);
                         changeTeleAttribute(props.sct - 1, "to1", tileY + 1);
+                        break;
+                }
+            } else if (props.scv > 0 && props.mct === "vaults") {
+                // Place a vault somewhere.
+                switch (e.button) {
+                    case 0:
+                        // Left click
+                        changeVaultAttribute(props.scv - 1, "from0", tileX);
+                        changeVaultAttribute(props.scv - 1, "from1", tileY);
+                        break;
+                    case 2:
+                        // Right click
+                        changeVaultAttribute(props.scv - 1, "to0", tileX);
+                        changeVaultAttribute(props.scv - 1, "to1", tileY);
                         break;
                 }
             } else if (props.scp > 0 && props.mct === "gravitation" && props.gd.custom) {
@@ -252,6 +286,9 @@ function Board(props) {
         let image = new Image();
         image.src = tilesSource;
         setSRC(image);
+        let vaultImage = new Image();
+        vaultImage.src = vaultTilesSource;
+        setVaultSRC(vaultImage);
 
         const MAX_WIDTH = props.m.width;
         const MAX_HEIGHT = props.m.height;
@@ -259,9 +296,8 @@ function Board(props) {
         const ctx = canvas?.getContext("2d");
         if (!ctx) return;
 
-        const tileSize = TILE_SIZE;
-        const w = Math.max(tileSize * MAX_WIDTH, MAX_C_WIDTH);
-        const h = Math.max(tileSize * MAX_HEIGHT, MAX_C_HEIGHT);
+        const w = Math.max(TILE_SIZE * MAX_WIDTH, MAX_C_WIDTH);
+        const h = Math.max(TILE_SIZE * MAX_HEIGHT, MAX_C_HEIGHT);
         canvas.width = w;
         canvas.height = h;
 
@@ -273,25 +309,30 @@ function Board(props) {
         ctx.fillStyle = "#adceff";
         ctx.fillRect(0, 0, w, h);
         ctx.fillStyle = "#5599ff";
-        ctx.fillRect(0, 0, tileSize * MAX_WIDTH, tileSize * MAX_HEIGHT);
+        ctx.fillRect(0, 0, TILE_SIZE * MAX_WIDTH, TILE_SIZE * MAX_HEIGHT);
         ctx.strokeStyle = "rgba(0,0,0,0.5)";
         ctx.lineWidth = 1.0;
         for (let y = 1; y < MAX_HEIGHT + 1; y++) {
             ctx.beginPath();
-            ctx.moveTo(0, y * tileSize);
-            ctx.lineTo(tileSize * MAX_WIDTH, y * tileSize);
+            ctx.moveTo(0, y * TILE_SIZE);
+            ctx.lineTo(TILE_SIZE * MAX_WIDTH, y * TILE_SIZE);
             ctx.stroke();
         }
         for (let x = 1; x < MAX_WIDTH + 1; x++) {
             ctx.beginPath();
-            ctx.moveTo(x * tileSize, 0)
-            ctx.lineTo(x * tileSize, tileSize * MAX_HEIGHT);
+            ctx.moveTo(x * TILE_SIZE, 0)
+            ctx.lineTo(x * TILE_SIZE, TILE_SIZE * MAX_HEIGHT);
             ctx.stroke();
         }
         ctx.fillStyle = "rgba(0,0,0,0)"
         // Draw tiles.
 
         function getDimensions(code) {
+            if (code.startsWith("vault")) {
+                const num = code.slice(5);
+                // This is a vault tile.
+                return { x: num * 64, y: 0, w: 64, h: 64}
+            }
             const flatat = at.flat();
             let index = flatat.indexOf(code);
             if (index === -1) index = 8;
@@ -312,7 +353,7 @@ function Board(props) {
                 for (const t of tiles[y]?.[x]) {
                     if (!unrelated.includes(t)) filled = true;
                 }
-                if (filled) ctx.fillRect(x * tileSize, y * tileSize, tileSize, tileSize);
+                if (filled) ctx.fillRect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
 
                 ctx.fillStyle = "rgba(190,190,190,0.1)";
                 if (
@@ -320,7 +361,7 @@ function Board(props) {
                     Math.abs(firstCamera[0] - x) <= (props.cd.width - 1) / 2 &&
                     Math.abs(firstCamera[1] - y) <= (props.cd.height - 1) / 2
                    )
-                ctx.fillRect(x * tileSize, y * tileSize, tileSize, tileSize);
+                ctx.fillRect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
             }
 
         for (let y = 0; y < MAX_HEIGHT; y++) {
@@ -344,77 +385,77 @@ function Board(props) {
                         const other_90_percents = ["G-", "*S", "PT", "I0", "B1", "B2", "B3", "J1", "J2", "J3", "J4"];
                         const is_90_percent = conflictingTiles[1].includes(tile) || other_90_percents.includes(tile) || tile[0] == "S" || levelThings.isKey(k) || levelThings.isCircleChest(tile);
                         const is_85_percent = tile[0] === "d";
-                        let ds = (1 - (levelThings.isPlasticCapsule(tile) ? 0.95 : (is_90_percent ? 0.9 : (is_85_percent ? 0.85 : 0.75)))) * tileSize;
+                        let ds = (1 - (levelThings.isPlasticCapsule(tile) ? 0.95 : (is_90_percent ? 0.9 : (is_85_percent ? 0.85 : 0.75)))) * TILE_SIZE;
                         if (tile[0] == "S") {
                             // Add a number to be displayed.
                             ctx.fillStyle = "rgba(255,255,255,0.7)";
                             ctx.strokeStyle = "rgba(255,255,255,0.9)";
                             ctx.font = "20px Segoe UI";
                             ctx.textAlign = "center";
-                            fillText(ctx, tile[1], (x + 0.15) * tileSize + ds / 2, (y + 0.15) * tileSize + ds / 2, tile, x, y);
+                            fillText(ctx, tile[1], (x + 0.15) * TILE_SIZE + ds / 2, (y + 0.15) * TILE_SIZE + ds / 2, tile, x, y);
                             ctx.font = "23px Segoe UI";
-                            strokeText(ctx, tile[1], (x + 0.15) * tileSize + ds / 2, (y + 0.15) * tileSize + ds / 2, tile, x, y);
+                            strokeText(ctx, tile[1], (x + 0.15) * TILE_SIZE + ds / 2, (y + 0.15) * TILE_SIZE + ds / 2, tile, x, y);
                         }
-                        const s = tileSize;
-                        if (tile === "G2") ds = 0.1 * tileSize;
-                        if (levelThings.isMetalBall(tile)) ds = 0.15 * tileSize;
-                        if (levelThings.isWatermelon(tile)) ds = 0.225 * tileSize;
+                        const s = TILE_SIZE;
+                        if (tile === "G2") ds = 0.1 * TILE_SIZE;
+                        if (levelThings.isMetalBall(tile)) ds = 0.15 * TILE_SIZE;
+                        if (levelThings.isWatermelon(tile)) ds = 0.225 * TILE_SIZE;
                         if (levelThings.isWall(tile)) ds = -0.05;
                         const offset = levelThings.getOffsetOf(tile);
 
                         if (tile !== "--" && tile !== "-O" && tile[0] !== "C")
-                        drawImage(ctx, src, d.x, d.y, d.w, d.h, x * tileSize + ds / 2 + offset[0], y * tileSize + ds / 2 + offset[1], s - ds, s - ds, x, y, tile)
+                        drawImage(ctx, src, d.x, d.y, d.w, d.h, x * TILE_SIZE + ds / 2 + offset[0], y * TILE_SIZE + ds / 2 + offset[1], s - ds, s - ds, x, y, tile)
                         let c = 0;
                         ctx.fillStyle = "rgba(0,0,0,0.1)";
-                        if (tiles[y][x].some(o => o[0] === "C")) ctx.fillRect(x * tileSize, y * tileSize, tileSize, 0.3 * tileSize);
+                        if (tiles[y][x].some(o => o[0] === "C")) ctx.fillRect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, 0.3 * TILE_SIZE);
                         for (let cannon of tiles[y][x].filter(o => o[0] === "C").reverse()) {
                             const d = getDimensions("??" + cannon)
-                            const ds = 0.75 * tileSize;
+                            const ds = 0.75 * TILE_SIZE;
                             const l = tiles[y][x].filter(o => o[0] === "C").length + 1
                             drawImage(ctx, src, d.x, d.y, d.w, d.h,
-                                (x + 0.4) * tileSize + ds / 2 - (c * tileSize / l) - 5,
-                                (y - 0.35) * tileSize + ds / 2 + offset[1],
+                                (x + 0.4) * TILE_SIZE + ds / 2 - (c * TILE_SIZE / l) - 5,
+                                (y - 0.35) * TILE_SIZE + ds / 2 + offset[1],
                             s - ds, s - ds, x, y, tile);
                             c++;
                         }
                         ctx.fillStyle = "rgba(255,255,255,0.15)";
-                        if (props.ts && props.ts[0] === x && props.ts[1] === y) ctx.fillRect(x * tileSize, y * tileSize, tileSize, tileSize);
+                        if (props.ts && props.ts[0] === x && props.ts[1] === y) ctx.fillRect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
                     }
                 }
                 let t;
-                const s = tileSize;
+                const s = TILE_SIZE;
                 const rotation = dirOfPosition([x, y]);
-                const validEntryTeleporters = props.teles.filter(o => o.from[0] === x + 1 && o.from[1] === y + 1);
+                const validEntryTeleporters = props.teleporters.filter(o => o.from[0] === x + 1 && o.from[1] === y + 1);
                 if (validEntryTeleporters.length > 0) {
                     let first = validEntryTeleporters[0];
-                    let num = props.teles.map((t, ind) => t.from[0]===first.from[0]&&t.from[1]===first.from[1]&&t.to[0]===first.to[0]&&t.to[1]===first.to[1] ? ind : null);
+                    let num = props.teleporters.map((t, ind) => t.from[0]===first.from[0]&&t.from[1]===first.from[1]&&t.to[0]===first.to[0]&&t.to[1]===first.to[1] ? ind : null);
                     // Teleporter Entry
                     t = getDimensions("?1");
-                    let ds = 0.1 * tileSize;
-                    drawImage(ctx, src, t.x, t.y, t.w, t.h, x * tileSize + ds / 2, y * tileSize + ds / 2, s - ds, s - ds, x, y, "?1");
+                    let ds = 0.1 * TILE_SIZE;
+                    drawImage(ctx, src, t.x, t.y, t.w, t.h, x * TILE_SIZE + ds / 2, y * TILE_SIZE + ds / 2, s - ds, s - ds, x, y, "?1");
 
                     ctx.fillStyle = "rgba(0,0,0,0.7)";
                     ctx.font = "15px Segoe UI";
                     ctx.textAlign = "center";
                     ctx.strokeStyle = "rgba(4,4,4,0.5)";
-                    fillText(ctx, num.filter(n => n != null)[0] + 1 , (x + 0.45) * tileSize + ds / 2, (y + 0.9) * tileSize + ds / 2, "?1", x, y, true);
-                    strokeText(ctx, num.filter(n => n != null)[0] + 1 , (x + 0.45) * tileSize + ds / 2, (y + 0.9) * tileSize + ds / 2, "?1", x, y, true);
+                    fillText(ctx, num.filter(n => n != null)[0] + 1 , (x + 0.45) * TILE_SIZE + ds / 2, (y + 0.9) * TILE_SIZE + ds / 2, "?1", x, y, true);
+                    strokeText(ctx, num.filter(n => n != null)[0] + 1 , (x + 0.45) * TILE_SIZE + ds / 2, (y + 0.9) * TILE_SIZE + ds / 2, "?1", x, y, true);
                 }
-                const validExitTeleporters = props.teles.filter(o => o.to[0] === x + 1 && o.to[1] === y + 1);
+                const validExitTeleporters = props.teleporters.filter(o => o.to[0] === x + 1 && o.to[1] === y + 1);
                 if (validExitTeleporters.length > 0) {
                     let first = validExitTeleporters[0];
-                    let num = props.teles.map((t, ind) => t.from[0]===first.from[0]&&t.from[1]===first.from[1]&&t.to[0]===first.to[0]&&t.to[1]===first.to[1] ? ind : null);
+                    let num = props.teleporters.map((t, ind) => t.from[0]===first.from[0]&&t.from[1]===first.from[1]&&t.to[0]===first.to[0]&&t.to[1]===first.to[1] ? ind : null);
                     // Teleporter Exit
                     t = getDimensions("?2");
-                    let ds = 0.1 * tileSize;
-                    drawImage(ctx, src, t.x, t.y, t.w, t.h, x * tileSize + ds / 2, y * tileSize + ds / 2, s - ds, s - ds, x, y, "?2")
+                    let ds = 0.1 * TILE_SIZE;
+                    drawImage(ctx, src, t.x, t.y, t.w, t.h, x * TILE_SIZE + ds / 2, y * TILE_SIZE + ds / 2, s - ds, s - ds, x, y, "?2")
 
                     ctx.fillStyle = "rgba(0,0,0,0.7)";
                     ctx.font = "15px Segoe UI";
                     ctx.textAlign = "center";
                     ctx.strokeStyle = "rgba(4,4,4,0.5)";
-                    fillText(ctx, num.filter(n => n != null)[0] + 1, (x + 0.45) * tileSize + ds / 2, (y + 0.1) * tileSize + ds / 2, "?2", x, y, true);
-                    strokeText(ctx, num.filter(n => n != null)[0] + 1, (x + 0.45) * tileSize + ds / 2, (y + 0.1) * tileSize + ds / 2, "?2", x, y, true);
+                    fillText(ctx, num.filter(n => n != null)[0] + 1, (x + 0.45) * TILE_SIZE + ds / 2, (y + 0.1) * TILE_SIZE + ds / 2, "?2", x, y, true);
+                    strokeText(ctx, num.filter(n => n != null)[0] + 1, (x + 0.45) * TILE_SIZE + ds / 2, (y + 0.1) * TILE_SIZE + ds / 2, "?2", x, y, true);
                 }
                 const validCameras = props.cd.cameras.filter(o => o[0] === x && o[1] === y);
                 if (validCameras.length > 0) {
@@ -422,13 +463,13 @@ function Board(props) {
                     let num = props.cd.cameras.map((t, ind) => t[0] === first[0] && t[1] === first[1] ? ind : null);
                     // Camera
                     t = getDimensions("cp");
-                    let ds = 0.1 * tileSize;
-                    drawImage(ctx, src, t.x, t.y, t.w, t.h, x * tileSize + ds / 2, y * tileSize + ds / 2, s - ds, s - ds, x, y, "cp")
+                    let ds = 0.1 * TILE_SIZE;
+                    drawImage(ctx, src, t.x, t.y, t.w, t.h, x * TILE_SIZE + ds / 2, y * TILE_SIZE + ds / 2, s - ds, s - ds, x, y, "cp")
 
                     ctx.fillStyle = "rgba(0,0,0,0.5)";
                     ctx.font = "23px Segoe UI";
                     ctx.textAlign = "center";
-                    fillText(ctx, num.filter(n => n != null)[0] + 1, (x + 0.32) * tileSize + ds / 2, (y + 0.55) * tileSize + ds / 2, "cp");
+                    fillText(ctx, num.filter(n => n != null)[0] + 1, (x + 0.32) * TILE_SIZE + ds / 2, (y + 0.55) * TILE_SIZE + ds / 2, "cp");
                 }
             }
         }
@@ -447,13 +488,13 @@ function Board(props) {
                 for (const point of path.slice(1)) {
                     ctx.beginPath();
                     let last = path[i];
-                    ctx.moveTo((last[0]+0.5) * tileSize, (last[1]+0.5) * tileSize);
-                    let gradient = ctx.createLinearGradient((last[0]+0.5) * tileSize, (last[1]+0.5) * tileSize, (point[0]+0.5) * tileSize, (point[1]+0.5) * tileSize);
+                    ctx.moveTo((last[0]+0.5) * TILE_SIZE, (last[1]+0.5) * TILE_SIZE);
+                    let gradient = ctx.createLinearGradient((last[0]+0.5) * TILE_SIZE, (last[1]+0.5) * TILE_SIZE, (point[0]+0.5) * TILE_SIZE, (point[1]+0.5) * TILE_SIZE);
                     gradient.addColorStop(0, "hsla("+hue+"deg, 70%, 100%, "+(40*transparencyMultiplier)+"%)");
                     gradient.addColorStop(1, "hsla("+hue+"deg, 70%, 3%, "+(40*transparencyMultiplier)+"%)");
                     ctx.strokeStyle = gradient;
                     i++;
-                    ctx.lineTo((point[0]+0.5) * tileSize, (point[1]+0.5) * tileSize);
+                    ctx.lineTo((point[0]+0.5) * TILE_SIZE, (point[1]+0.5) * TILE_SIZE);
                     ctx.stroke();
                 }
             }
@@ -466,10 +507,100 @@ function Board(props) {
                     ctx.lineWidth = 6;
                     ctx.font = "24px Segoe UI";
                     ctx.textAlign = "center";
-                    strokeText(ctx, i+1, (point[0]+0.5) * tileSize + offset[0], (point[1]+0.5) * tileSize + offset[1]);
-                    fillText(ctx, i+1, (point[0]+0.5) * tileSize + offset[0], (point[1]+0.5) * tileSize + offset[1]);
+                    strokeText(ctx, i+1, (point[0]+0.5) * TILE_SIZE + offset[0], (point[1]+0.5) * TILE_SIZE + offset[1]);
+                    fillText(ctx, i+1, (point[0]+0.5) * TILE_SIZE + offset[0], (point[1]+0.5) * TILE_SIZE + offset[1]);
                     i++;
                 }
+            }
+        }
+
+        let vaultNumber = 1;
+
+        if (props.vaults.length > 0) {
+            // To tint an image, we must create a buffer canvas.
+            const buffer = document.createElement('canvas');
+            const bufferCtx = buffer.getContext("2d");
+
+            buffer.width = canvas.width;
+            buffer.height = canvas.height;
+
+            
+            ctx.textAlign = "center";
+            // There are vaults present.
+            for (let vault of props.vaults) {
+                // Loop though every covered tile.
+                for (let x = vault.from[0]; x <= vault.to[0]; x++) {
+                    for (let y = vault.from[1]; y <= vault.to[1]; y++) {
+                        let num = 0;
+                        if (x == vault.from[0]) num += 1; // This tile is at the vault's left.
+                        if (x == vault.to[0]) num += 4; // This tile is at the vault's right.
+                        if (y == vault.from[1]) num += 2; // This tile is at the vault's top.
+                        if (y == vault.to[1]) num += 8; // This tile is at the vault's bottom.
+                        const d = getDimensions("vault" + num);
+                        const ex = 1;
+
+                        // Copied from:
+                        // https://stackoverflow.com/questions/2688961/how-do-i-tint-an-image-with-html5-canvas
+
+                        bufferCtx.clearRect(0, 0, buffer.width, buffer.height)
+
+                        // fill offscreen buffer with the tint color
+                        bufferCtx.fillStyle = levelThings.vaultColours[vault.colour];
+                        bufferCtx.fillRect(0, 0, buffer.width, buffer.height);
+
+                        // destination atop makes a result with an alpha channel identical to fg, but with all pixels retaining their original color *as far as I can tell*
+                        bufferCtx.globalCompositeOperation = "destination-atop";
+                        drawImage(
+                            bufferCtx, vaultSrc, d.x, d.y, d.w, d.h,
+                            x * TILE_SIZE - ex/2, y * TILE_SIZE - ex/2, TILE_SIZE, TILE_SIZE,
+                            x, y, "V" + num
+                        )
+
+
+                        // to tint the image, draw it first
+                        drawImage(
+                            ctx, vaultSrc, d.x, d.y, d.w, d.h,
+                            x * TILE_SIZE - ex/2, y * TILE_SIZE - ex/2, TILE_SIZE, TILE_SIZE,
+                            x, y, "V" + num
+                        )
+
+                        //then set the global alpha to the amound that you want to tint it, and draw the buffer directly on top of it.
+                        ctx.globalAlpha = 0.55;
+                        ctx.drawImage(buffer, 0, 0)
+                    }
+                }
+
+                ctx.fillStyle = "rgba(0,0,0,0.9)";
+                ctx.font = "30px Segoe UI";
+                
+                fillText(ctx, vaultNumber, 
+                    (vault.from[0] + vault.to[0] + 1) / 2 * TILE_SIZE,
+                    (vault.from[1] + vault.to[1] + 1) / 2 * TILE_SIZE,
+                    "null",
+                    0,
+                    0
+                )
+                const iconD = getDimensions(levelThings.vaultTypes[vault.type]);
+                const iconSize = 40;
+                drawImage(ctx, src, 
+                    iconD.x, iconD.y, iconD.w, iconD.h,
+                    (vault.from[0] + vault.to[0] + 1) / 2 * TILE_SIZE - iconSize/2,
+                    (vault.from[1] + vault.to[1] + 1) / 2 * TILE_SIZE - iconSize/2 + 20,
+                    iconSize, iconSize, 0, 0,
+                    levelThings.vaultTypes[vault.type]
+                )
+
+                ctx.fillStyle = "rgba(255,255,255,1)";
+                ctx.font = "24px Segoe UI";
+
+                for (let t = 0; t < 7; t++) strokeText(ctx, vault.health, 
+                    (vault.from[0] + vault.to[0] + 1) / 2 * TILE_SIZE - iconSize/2 + iconSize/2,
+                    (vault.from[1] + vault.to[1] + 1) / 2 * TILE_SIZE - iconSize/2 + 50,
+                    "null",
+                    0,
+                    0
+                )
+                vaultNumber++;
             }
         }
     }
@@ -588,16 +719,18 @@ function Board(props) {
 
     useEffect(() => {
         updateTiles(props.t);
-    }, [props.m, props.l, props.t, props.ts, props.teles, props.cd, props.gd, props.mct]);
+    }, [props.m, props.l, props.t, props.ts, props.teleporters, props.cd, props.gd, props.mct, props.vaults]);
 
     return (
-        <canvas
-            className="Board"
-            onContextMenu={e => e.preventDefault()}
-            onMouseDown={handleClick}
-            onResize={() => updateTiles(tiles)}
-            ref={boardRef}
-        />
+        <>
+            <canvas
+                className="Board"
+                onContextMenu={e => e.preventDefault()}
+                onMouseDown={handleClick}
+                onResize={() => updateTiles(tiles)}
+                ref={boardRef}
+            />
+        </>
     );
 }
 

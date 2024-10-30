@@ -24,7 +24,8 @@ function App() {
 	const [tiles, setTiles] = useState(t);
 	const [g, setG] = useState([]);
 	const [mg, setMG] = useState([[], [], []]);
-	const [teles, setTeles] = useState([]);
+	const [teleporters, setTeleporters] = useState([]);
+	const [vaults, setVaults] = useState([]);
 	const [c, setC] = useState([]);
 	const [ts, setTS] = useState(null);
 
@@ -37,10 +38,13 @@ function App() {
 	const [dir, setDir] = useState([null, null]);
 	// Currently selected teleporter.
 	const [sct, setsct] = useState(0);
+	// Currently selected vault.
+	const [scv, setscv] = useState(0);
 	// Currently selected path (gravitation).
 	const [scp, setscp] = useState(0);
 	// Currently selected point of currently selected path (gravitation).
 	const [scpp, setscpp] = useState(1);
+
 	const [menuCurrentTab, setmct] = useState("properties");
 	const [cameraData, setCameraData] = useState({
 		enabled: false,
@@ -99,6 +103,12 @@ function App() {
 
 		increaseColours: makeDefaultCheckboxFilter(false),
 		immediateShowdown: makeDefaultCheckboxFilter(true),
+
+		hasCamera: makeDefaultCheckboxFilter(false),
+		hasCustomGravitation: makeDefaultCheckboxFilter(false),
+		hasVaults: makeDefaultCheckboxFilter(false),
+		hasPreferredColours: makeDefaultCheckboxFilter(false),
+		hasCustomSpawnConfigs: makeDefaultCheckboxFilter(false)
 	}
 
 	const [filterAttributes, setFA] = useState({... defaultFilter})
@@ -114,6 +124,20 @@ function App() {
 	function resetFilters() {
 		setFA({ ...defaultFilter });
 	}
+
+
+    function isDefaultFilter() {
+        for (let key in filterAttributes) {
+            if (key === "hard") {
+                for (let i = 0; i < 5; i++) {
+                    if (!filterAttributes.hard[i]) return false;
+                }
+            } else {
+                if (filterAttributes[key].enabled) return false;
+            }
+        }
+        return true;
+    }
 
 	const inputLevels = useRef(null);
 
@@ -193,34 +217,40 @@ function App() {
 			<Palette ss={setSelected} cd={cameraData}/>
 			<>
 			<Menu  
-				setmct={setmct} sct={sct} setsct={setsct}
+				setmct={setmct} sct={sct} setsct={setsct} scv={scv} setscv={setscv}
 				l={level} sm={setMs}
 				dir={dir} m={menuS}
 				g={g} sg={setG}
 				mg={mg} smg={setMG}
-				teles={teles} steles={setTeles}
+				teleporters={teleporters} setTeleporters={setTeleporters}
+				vaults={vaults} setVaults={setVaults}
+
 				t={tiles} st={setTiles}
 				elns={elns} selns={setELNS}
 				lns={lns} slns={setLNS} sc={setC} c={c}
 				nlns={nlns} snlns={setNightLNS}
 				nelns={nelns} snelns={setNightELNS}
 				nightMode={nightMode}
+
 				cd={cameraData} setcd={setCameraData}
 				spd={spawnData} setspd={setSpawnData}
 				gd={gravitationData} setgd={setGravitationData}
+
 				scp={scp} setscp={setscp} scpp={scpp} setscpp={setscpp}
+
+				setAlertActive={setAlertActive} setAlertContent={setAlertContent} isDefaultFilter={isDefaultFilter}
 			/>
 			<div className={"BoardDiv"} style={{
 				overflow: level > 0 ? "scroll" : "auto"
 			}}>
 			<Board 
 				mct={menuCurrentTab}
-				sct={sct} setsct={setsct}
-				scp={scp}
+				sct={sct} scp={scp} scv={scv} 
 				scpp={scpp} setscpp={setscpp}
 				s={selected} m={menuS} l={level}
 				st={setTiles} t={tiles} 
-				teles={teles} steles={setTeles} 
+				teleporters={teleporters} setTeleporters={setTeleporters} 
+				vaults={vaults} setVaults={setVaults}
 				ts={ts} sts={setTS}
 				cd={cameraData} setcd={setCameraData}
 				gd={gravitationData} setgd={setGravitationData}
@@ -231,7 +261,8 @@ function App() {
 					l={level} sl={setLevel}
 					dir={dir} st={setTiles} sd={setDir}
 					sm={setMs} sg={setG} smg={setMG}
-					steles={setTeles}
+					setTeleporters={setTeleporters}
+					setVaults={setVaults}
 
 					slns={setLNS} lns={lns}
 					elns={elns} selns={setELNS}
@@ -250,7 +281,8 @@ function App() {
 
 					nightMode={nightMode} setNightMode={setNightMode}
 
-					setAlertActive={setAlertActive} setAlertContent={setAlertContent}
+					setAlertActive={setAlertActive} setAlertContent={setAlertContent} isDefaultFilter={isDefaultFilter}
+					FA={filterAttributes}
 				/>
 				<Tiles
 					ts={ts} t={tiles} st={setTiles}

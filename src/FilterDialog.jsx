@@ -49,7 +49,7 @@ function FilterDialog(props) {
                             type="checkbox"
                             onChange={(e) => changeFilterAttribute(key, "enabled", e.target.checked)} 
                             checked={props.FA[key].enabled}
-                            key={0}
+                            key={"enabled"}
                         />
                         <label>Enabled?</label>
                     </>
@@ -94,7 +94,7 @@ function FilterDialog(props) {
                             type="checkbox"
                             onChange={(e) => changeFilterAttribute(key, "enabled", e.target.checked)} 
                             checked={props.FA[key].enabled}
-                            key={0}
+                            key={"enabled"}
                         />
                         <label style={{marginRight: "200px"}}>Enabled?</label>
                     </>
@@ -106,7 +106,7 @@ function FilterDialog(props) {
                             type="checkbox"
                             onChange={(e) => changeFilterAttribute(key, "checked", e.target.checked)} 
                             checked={props.FA[key].checked}
-                            key={1}
+                            key={"prop"}
                             disabled={!props.FA[key].enabled}
                         />
                         <label style={{marginRight: "200px"}}>Checked?</label>
@@ -190,6 +190,24 @@ function FilterDialog(props) {
                 makeFilter("Max Bar Score", "number", "maxBarScore", { min: 1, max: levelThings.maxScoreTarget })
             );
         }
+
+        filters.push(makeSep());
+
+        filters.push(
+            makeFilter("Uses camera?", "checkbox", "hasCamera")
+        );
+        filters.push(
+            makeFilter("Has custom gravitation?", "checkbox", "hasCustomGravitation")
+        );
+        filters.push(
+            makeFilter("Has vaults?", "checkbox", "hasVaults")
+        );
+        filters.push(
+            makeFilter("Has preferred colo(u)rs?", "checkbox", "hasPreferredColours")
+        );
+        filters.push(
+            makeFilter("Has custom spawn configurations?", "checkbox", "hasCustomSpawnConfigs")
+        );
 
         return filters;
     }
