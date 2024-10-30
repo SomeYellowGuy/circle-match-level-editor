@@ -806,7 +806,7 @@ function Menu(props) {
                 data.vaults.push([vault.from, vault.to,
                     vault.type.replace(/ /g, '_').toLowerCase(),
                     Object.keys(levelThings.vaultColours).indexOf(vault.colour),
-                    vault.health
+                    Number(vault.health)
                 ]);
             }
         }
