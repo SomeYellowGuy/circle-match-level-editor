@@ -53,6 +53,11 @@ const levelThings = {
     },
 
     /**
+     * Vault colo(u)rs that require black text.
+     */
+    lightVaultColours: ["White", "Yellow", "Green"],
+
+    /**
      * All possible types of a cannon of a level.
      */
     cannonTypes:

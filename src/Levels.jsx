@@ -217,8 +217,10 @@ function Levels(props) {
                         from: vaultData[0],
                         to: vaultData[1],
                         type: vaultData[2].replace(/_/g, ' ').split(" ").map(o=>o[0].toUpperCase()+o.slice(1)).join(" "),
-                        colour: Object.keys(levelThings.vaultColours)[vaultData[3]],
-                        health: vaultData[4]
+                        colour: Object.keys(levelThings.vaultColours)[vaultData[3] % 50],
+                        translucent: vaultData[3] >= 50,
+                        health: vaultData[4],
+                        type2: vaultData.length === 6 ? vaultData[5].replace(/_/g, ' ').split(" ").map(o=>o[0].toUpperCase()+o.slice(1)).join(" ") : "Nothing"
                     })
                 }
                 props.setVaults(vaults);

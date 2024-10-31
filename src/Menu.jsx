@@ -252,6 +252,8 @@ function Menu(props) {
             from: [0, 0],
             to: [menuState.width-1, menuState.height-1],
             type: "Striped Circle",
+            type2: "Nothing",
+            translucent: false,
             colour: "Red",
             health: 5
         });
@@ -402,7 +404,7 @@ function Menu(props) {
         let items = [];
         // Make an Add button.
         items.push(<button id="MenuGoalAdd" onClick={addVault} key={0}>
-            Add Vaults
+            Add Vault
         </button>)
         items.push(<button id="MenuGoalAdd" onClick={() => {
             removeVault(props.scv - 1)
@@ -422,26 +424,33 @@ function Menu(props) {
         </div>);
 
         let vaults = [];
-        let options = [[],[]];
+        let options = [[],[],[
+            <option key={"Nothing"} style={{
+                backgroundColor: "rgb(50,100,50,100)"
+            }}>Nothing</option>
+        ]];
 
         for (let type in levelThings.vaultTypes) {
-            options[0].push(<option key={type} style={{
+            const op = <option key={type} style={{
                 backgroundColor: "rgb(0,50,0,100)"
-            }}>{type}</option>)
+            }}>{type}</option>
+            options[0].push(op)
+            options[2].push(op)
         }
         for (let colour in levelThings.vaultColours) {
             const val = levelThings.vaultColours[colour];
-            options[1].push(<option key={colour} style={{
+            const op = <option key={colour} style={{
                 backgroundColor: val,
-                color: (colour === "White" || colour === "Yellow" ? "black" : null)
-            }}>{colour}</option>)
+                color: (levelThings.lightVaultColours.includes(colour) ? "black" : null)
+            }}>{colour}</option>
+            options[1].push(op)
         }
 
         for (let i = 0; i < props.vaults.length; i++) {
             const vaultData = props.vaults[i];
             let vaultContent = [];
             vaultContent.push(makeSubSec("Vault #" + (i+1)));
-            vaultContent.push(<label className="MenuAreaLabel" key={2}>Type
+            vaultContent.push(<label className="MenuAreaLabel" key={0}>Type
                 <select
                     className="MenuAreaField" onChange={(e) => changeVaultAttribute(i, "type", e.target.value)}
                     value={vaultData.type} style={{
@@ -450,7 +459,16 @@ function Menu(props) {
                     {options[0]}
                 </select>
             </label>)
-            vaultContent.push(<label className="MenuAreaLabel" key={2}>Colo(u)r
+            vaultContent.push(<label className="MenuAreaLabel" key={1}>Another?
+                <select
+                    className="MenuAreaField" onChange={(e) => changeVaultAttribute(i, "type2", e.target.value)}
+                    value={vaultData.type2} style={{
+                        width: "55%"
+                    }}>
+                    {options[2]}
+                </select>
+            </label>)
+            vaultContent.push(<label className="MenuAreaLabel" key={10}>Colo(u)r
                 <select
                     className="MenuAreaField" onChange={(e) => changeVaultAttribute(i, "colour", e.target.value)}
                     value={vaultData.colour} style={{
@@ -460,7 +478,14 @@ function Menu(props) {
                 </select>
                 </label>
             )
-            vaultContent.push(<label className="MenuAreaLabel" key={2}>Health
+            vaultContent.push(<div>
+                <label htmlFor="input" className={"MenuAreaLabel"} key={30}>Translucent?<input type="checkbox"
+                    className={"MenuAreaField"} onChange={(e) => changeVaultAttribute(i, "translucent", e.target.checked)}
+                    checked={vaultData.translucent} style={{
+                        width: "35%"
+                    }} /></label>
+            </div>)
+            vaultContent.push(<label className="MenuAreaLabel" key={20}>Health
                 <input type="number"
                     className={"MenuAreaField"} onChange={(e) => changeVaultAttribute(i, "health", e.target.value)}
                     min={1} max={Infinity} step={1} value={vaultData.health} style={{
@@ -803,11 +828,13 @@ function Menu(props) {
         if (props.vaults.length > 0) {
             data.vaults = [];
             for (let vault of props.vaults) {
-                data.vaults.push([vault.from, vault.to,
+                let arr = [vault.from, vault.to,
                     vault.type.replace(/ /g, '_').toLowerCase(),
-                    Object.keys(levelThings.vaultColours).indexOf(vault.colour),
+                    Object.keys(levelThings.vaultColours).indexOf(vault.colour) + (vault.translucent ? 50 : 0),
                     Number(vault.health)
-                ]);
+                ];
+                if (vault.type2 !== "Nothing") arr.push(vault.type2.replace(/ /g, '_').toLowerCase())
+                data.vaults.push(arr);
             }
         }
         // Allow the user to save!

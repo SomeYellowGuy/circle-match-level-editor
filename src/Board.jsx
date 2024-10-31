@@ -564,8 +564,8 @@ function Board(props) {
                             x, y, "V" + num
                         )
 
-                        //then set the global alpha to the amound that you want to tint it, and draw the buffer directly on top of it.
-                        ctx.globalAlpha = 0.55;
+                        //then set the global alpha to the amount that you want to tint it, and draw the buffer directly on top of it.
+                        ctx.globalAlpha = vault.translucent ? 0.35 : 0.6;
                         ctx.drawImage(buffer, 0, 0)
                     }
                 }
@@ -582,13 +582,36 @@ function Board(props) {
                 )
                 const iconD = getDimensions(levelThings.vaultTypes[vault.type]);
                 const iconSize = 40;
-                drawImage(ctx, src, 
-                    iconD.x, iconD.y, iconD.w, iconD.h,
+                const pos = [
                     (vault.from[0] + vault.to[0] + 1) / 2 * TILE_SIZE - iconSize/2,
-                    (vault.from[1] + vault.to[1] + 1) / 2 * TILE_SIZE - iconSize/2 + 20,
-                    iconSize, iconSize, 0, 0,
-                    levelThings.vaultTypes[vault.type]
-                )
+                    (vault.from[1] + vault.to[1] + 1) / 2 * TILE_SIZE - iconSize/2 + 20
+                ];
+
+                if (vault.type2 === "Nothing") {
+                    drawImage(ctx, src, 
+                        iconD.x, iconD.y, iconD.w, iconD.h,
+                        pos[0],
+                        pos[1],
+                        iconSize, iconSize, 0, 0,
+                        levelThings.vaultTypes[vault.type]
+                    );
+                } else {
+                    drawImage(ctx, src, 
+                        iconD.x, iconD.y, iconD.w/2, iconD.h,
+                        pos[0],
+                        pos[1],
+                        iconSize / 2, iconSize, 0, 0,
+                        levelThings.vaultTypes[vault.type]
+                    );
+                    const iconD2 = getDimensions(levelThings.vaultTypes[vault.type2]);
+                    drawImage(ctx, src, 
+                        iconD2.x + 32, iconD2.y, iconD2.w/2, iconD2.h,
+                        pos[0] + iconSize/2,
+                        pos[1],
+                        iconSize / 2, iconSize, 0, 0,
+                        levelThings.vaultTypes[vault.type]
+                    );
+                }
 
                 ctx.fillStyle = "rgba(255,255,255,1)";
                 ctx.font = "24px Segoe UI";
