@@ -100,7 +100,7 @@ function Palette(props) {
                         textAlign: "right",
                         float: "right",
                         marginRight: "3px"
-                    }}>v1.5.0</b>
+                    }}>v1.6.0</b>
                 </div>
             </div>
         </div>
